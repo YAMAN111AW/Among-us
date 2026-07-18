@@ -29,6 +29,90 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# ====== أدوات مساعدة ======
+CREWMATE_TOOLS = [
+    {
+        "name": "جهاز تتبع",
+        "emoji": "📡",
+        "description": "يكشف موقع لاعب واحد بشكل تقريبي",
+        "effect": "track",
+        "message": "📡 الجهاز يرن... {target} شوهد آخر مرة في: {location}"
+    },
+    {
+        "name": "كاميرا مراقبة",
+        "emoji": "📸",
+        "description": "تلتقط صورة للاعب وتكشف إذا كان مشبوهاً",
+        "effect": "camera",
+        "message": "📸 الكاميرا التقطت صورة... {target} {status}"
+    },
+    {
+        "name": "جهاز كشف الكذب",
+        "emoji": "🕵️",
+        "description": "يسأل اللاعب سؤال ويكشف إذا كان صادقاً",
+        "effect": "lie_detector",
+        "message": "🕵️ جهاز كشف الكذب: {target} {status}"
+    },
+    {
+        "name": "درع واقي",
+        "emoji": "🛡️",
+        "description": "يحميك من القتل لمرة واحدة",
+        "effect": "shield",
+        "message": "🛡️ تم تفعيل الدرع! أنت محمي من القتل لمرة واحدة"
+    },
+    {
+        "name": "مسرع المهام",
+        "emoji": "⚡",
+        "description": "ينهي مهمتين دفعة واحدة",
+        "effect": "speed_boost",
+        "message": "⚡ السرعة تضاعفت! أنهيت مهمتين مع بعض!"
+    }
+]
+
+IMPOSTOR_TOOLS = [
+    {
+        "name": "قنبلة دخان",
+        "emoji": "💨",
+        "description": "تمنع الكاميرات من التصوير لدقيقة",
+        "effect": "smoke_bomb",
+        "message": "💨 دخان كثيف ملأ المكان! الكاميرات تعطلت لمدة دقيقة"
+    },
+    {
+        "name": "تنكر",
+        "emoji": "🎭",
+        "description": "تتظاهر أنك طاقم وتكمل مهمة حقيقية",
+        "effect": "disguise",
+        "message": "🎭 تنكرت كطاقم! أكملت مهمة حقيقية بنجاح"
+    },
+    {
+        "name": "تخريب الأبواب",
+        "emoji": "🚪",
+        "description": "يقفل الأبواب ويمنع الطاقم من الحركة",
+        "effect": "lock_doors",
+        "message": "🚪 الأبواب اتقفلت! الطاقم محبوس 30 ثانية"
+    },
+    {
+        "name": "سم قاتل",
+        "emoji": "🧪",
+        "description": "تقتل لاعبين في نفس الوقت",
+        "effect": "poison",
+        "message": "🧪 السم انتشر! لاعبين ماتوا في نفس اللحظة"
+    },
+    {
+        "name": "تشويش الاتصالات",
+        "emoji": "📵",
+        "description": "يمنع اجتماع الطوارئ لدقيقة",
+        "effect": "jam_comms",
+        "message": "📵 الاتصالات متعطلة! ممنوع اجتماع الطوارئ لمدة دقيقة"
+    }
+]
+
+# ====== المواقع في السفينة ======
+LOCATIONS = [
+    "الكافتيريا 🍽️", "المفاعل ☢️", "غرفة المحرك ⚙️",
+    "الممر الرئيسي 🚶", "غرفة الاتصالات 📡", "المخزن 📦",
+    "غرفة الأكسجين 🫁", "المختبر 🔬", "قاعة الاجتماعات 🏛️"
+]
+
 # ====== ثوابت اللعبة ======
 CREWMATE_TASKS = [
     {
@@ -124,36 +208,73 @@ IMPOSTOR_TASKS = [
     }
 ]
 
+# ====== سيناريوهات القتل الدرامية ======
 KILL_SCENARIOS = [
     {
         "weapon": "خنجر",
         "emoji": "🗡️",
         "scene": [
-            "🕵️ ضحية مشبوهة ظهرت قدامك...",
-            "👤 بتتسلل من ورا الضل...",
-            "💨 حركة سريعة! الضحية ماخدتش بالها",
-            "🩸 طعنة صامتة في الضلمة...",
-            "🤫 محدش شاف حاجة! بتختفي بسرعة"
+            "🕵️ *ظل أسود يتحرك في الظلام...*",
+            "👤 *الضحية واقفة لوحدها... قلبها يدق بسرعة*",
+            "💨 *خطوات سريعة من الخلف...*",
+            "🩸 *طعنة صامتة اخترقت الظلام...*",
+            "🤫 *القاتل يختفي كالشبح... محدش شاف حاجة!*"
         ],
-        "death_message": "💀 {victim} اتطعلن بالخنجر! الجثة في الكافتيريا 🗡️"
+        "death_message": "🔴💀🔴\n*تم اكتشاف جثة!*\n\n💀 {victim} مات مقتولاً بالخنجر!\n📍 الموقع: {location}\n🩸 أثر دم يؤدي إلى... لا أحد يعرف!\n\n🚨 *اجتماع طارئ!*"
     },
     {
         "weapon": "مسدس",
         "emoji": "🔫",
         "scene": [
-            "🎯 بتصوب على الهدف...",
-            "😤 الضحية واقفة لوحدها في الرواق",
-            "💥 طلقة سريعة مدوية!",
-            "🏃‍♂️ بتجري بسرعة قبل ما حد يجي",
-            "🌫️ الدخان مالي المكان..."
+            "🎯 *القاتل يصوب من بعيد...*",
+            "😤 *الضحية مشغولة في مهمتها...*",
+            "💥 *طلقة مدوية هزت أرجاء السفينة!*",
+            "🏃 *القاتل يهرب والدخان يملأ المكان...*",
+            "🌫️ *الرؤية معدومة... مين اللي ضغط الزناد؟*"
         ],
-        "death_message": "💀 {victim} انضرب بالرصاص! الجثة في الرواق 🔫"
+        "death_message": "🔴💀🔴\n*جريمة قتل مروعة!*\n\n💀 {victim} انقتل بالرصاص!\n📍 الموقع: {location}\n🔫 صوت الطلقة سُمع في كل مكان!\n\n🚨 *كل المشتبه بهم إلى قاعة الاجتماعات!*"
+    },
+    {
+        "weapon": "خنق",
+        "emoji": "🪢",
+        "scene": [
+            "🕸️ *حبل رفيع يلمع في الظلام...*",
+            "👤 *الضحية مركزة في شغلها... مش واخدة بالها*",
+            "🤐 *ايد باردة بتقفل فمها... مفيش صوت*",
+            "💪 *القاتل بيشد الحبل بقوة... خلاص سكتت*",
+            "🫥 *الجثة اختفت في الظل... القاتل كإنه مكانش هنا*"
+        ],
+        "death_message": "🔴💀🔴\n*اختفاء غامض!*\n\n💀 {victim} اتخنقت واتسحبت للمخزن!\n📍 الموقع: {location}\n🪢 الحبل لسه موجود... الجاني قريب!\n\n🚨 *الكل يتجمع فوراً!*"
+    }
+]
+
+# ====== أحداث عشوائية ======
+RANDOM_EVENTS = [
+    {
+        "name": "انقطاع الكهرباء",
+        "emoji": "⚡",
+        "message": "⚡ *انقطعت الكهرباء فجأة!*\n\n🌑 الظلام يخيم على السفينة...\n👀 القاتل يستغل الظلام!\n🔦 محدش شايف حاجة لمدة 20 ثانية!"
+    },
+    {
+        "name": "زلزال في السفينة",
+        "emoji": "🌋",
+        "message": "🌋 *السفينة بتهتز بعنف!*\n\n💥 كل اللاعبين وقعوا!\n🎯 المهام اتلغت لمدة 15 ثانية\n🏃 القاتل بيستغل الفوضى!"
+    },
+    {
+        "name": "إنذار حريق",
+        "emoji": "🔥",
+        "message": "🔥🚨🔥 *إنذار حريق! إنذار حريق!*\n\n🚒 الرشاشات اشتغلت!\n💦 كل اللاعبين بيجروا للمخارج!\n👀 في وسط الفوضى... القاتل بيتحرك!"
+    },
+    {
+        "name": "رسالة غامضة",
+        "emoji": "📨",
+        "message": "📨 *تم استلام رسالة غامضة!*\n\n👤 'أنا شفت اللي حصل...'\n🔍 'القاتل قريب منك...'\n💀 'خلي بالك... يمكن تكون الضحية الجاية!'"
     }
 ]
 
 # ====== تخزين مؤقت للجلسات النشطة ======
 active_games = {}
-user_tasks = {}  # {user_id: task_message_id}
+user_tools = {}  # {user_id: [tools]}
 
 # ====== دوال قاعدة البيانات ======
 def get_conn():
@@ -286,7 +407,6 @@ def get_impostor_count(player_count: int) -> int:
         return 3
 
 def get_player_name(player_data: dict) -> str:
-    """الحصول على اسم اللاعب بشكل آمن"""
     return player_data.get('first_name') or player_data.get('username') or 'لاعب'
 
 # ====== معالجات الأوامر ======
@@ -295,31 +415,28 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     get_user(user.id)
     
     welcome_text = (
-        f"🎮 مرحباً {user.first_name}!\n\n"
-        f"أنا بوت Among Us في تليجرام!\n"
+        f"🎮 *مرحباً {user.first_name}!*\n\n"
+        f"أنا بوت *Among Us* في تليجرام!\n"
         f"العب مع أصدقائك في المجموعات واكتشف القاتل!\n\n"
-        f"👥 طريقة اللعب:\n"
+        f"👥 *طريقة اللعب:*\n"
         f"1. أضفني لمجموعتك وارفعني مشرف\n"
         f"2. اكتب /new_game لبدء جولة\n"
         f"3. استخدم /join للانضمام\n"
         f"4. نفذ المهام التفاعلية بـ /tasks\n"
-        f"5. صوت لطرد المشتبه بـ /vote\n\n"
-        f"🏆 الأوامر الرئيسية:\n"
-        f"/start - البدء\n"
+        f"5. استخدم أدواتك بـ /tools\n"
+        f"6. صوت لطرد المشتبه بـ /vote\n\n"
+        f"🏆 *الأوامر الرئيسية:*\n"
         f"/new_game - إنشاء لعبة جديدة\n"
         f"/join - انضمام للعبة\n"
-        f"/leave - مغادرة اللعبة\n"
         f"/tasks - تنفيذ مهمة تفاعلية\n"
+        f"/tools - استخدام الأدوات المساعدة\n"
         f"/status - حالة اللعبة الحالية\n"
         f"/emergency - اجتماع طارئ\n"
-        f"/vote - التصويت للطرد\n"
         f"/stats - إحصائياتك\n"
         f"/leaderboard - المتصدرين\n"
-        f"/referral - كود الإحالة\n"
         f"/help - المساعدة\n\n"
-        f"🎁 نظام الإحالات:\n"
-        f"انسخ كود الإحالة خاصتك وشاركه مع أصدقائك\n"
-        f"عند استخدامهم للبوت لأول مرة، تكسب 75 نقطة!"
+        f"🎁 *نظام الإحالات:*\n"
+        f"شارك كود الإحالة واربح 75 نقطة!"
     )
     
     keyboard = [
@@ -330,31 +447,30 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await update.message.reply_text(welcome_text, reply_markup=reply_markup)
+    await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     help_text = (
-        "🎮 دليل اللعب الكامل\n\n"
-        "1. بدء اللعبة:\n"
+        "🎮 *دليل اللعب الكامل*\n\n"
+        "*1. بدء اللعبة:*\n"
         "- اكتب /new_game في المجموعة\n"
         "- اللعبة تحتاج 4 لاعبين على الأقل\n\n"
-        "2. الانضمام:\n"
-        "- اكتب /join للانضمام للجولة\n"
-        "- الحد الأقصى 10 لاعبين\n\n"
-        "3. المهام التفاعلية:\n"
-        "- اكتب /tasks لتنفيذ مهمة\n"
-        "- اضغط على الأزرار لإكمال المهمة\n"
-        "- القاتل: مهامه وهمية وتفشل دائماً\n\n"
-        "4. القتل (للقاتل فقط):\n"
-        "- اكتب /kill @username في الخاص\n"
-        "- تقدر تقتل كل 30 ثانية\n\n"
-        "5. التصويت:\n"
-        "- عند اكتشاف جثة، يبدأ التصويت تلقائياً\n"
-        "- استخدم /emergency لاجتماع طارئ\n\n"
-        "6. الفوز:\n"
-        "- الطاقم يفوز: عند طرد كل القتلة\n"
-        "- القاتل يفوز: عند قتل كل الطاقم\n\n"
-        "نظام النقاط:\n"
+        "*2. المهام التفاعلية:*\n"
+        "- اكتب /tasks لتنفيذ مهمة بأزرار\n"
+        "- اختر الإجابة الصحيحة\n\n"
+        "*3. الأدوات المساعدة:*\n"
+        "- اكتب /tools لاستخدام أدواتك\n"
+        "- الطاقم: كاميرات، تتبع، دروع\n"
+        "- القاتل: دخان، تنكر، سم\n\n"
+        "*4. القتل (للقاتل فقط):*\n"
+        "- اكتب /kill @username في الخاص\n\n"
+        "*5. الاجتماع الطارئ:*\n"
+        "- اكتب /emergency لاجتماع عاجل\n"
+        "- لديكم 90 ثانية للنقاش\n\n"
+        "*6. الفوز:*\n"
+        "- الطاقم: اكتشاف كل القتلة\n"
+        "- القاتل: القضاء على الطاقم\n\n"
+        "*نظام النقاط:*\n"
         "🏆 فوز كطاقم: 100 نقطة\n"
         "🔪 فوز كقاتل: 150 نقطة\n"
         "✅ إكمال مهمة: 15 نقطة\n"
@@ -362,7 +478,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "👥 إحالة صديق: 75 نقطة"
     )
     
-    await update.message.reply_text(help_text)
+    await update.message.reply_text(help_text, parse_mode='Markdown')
 
 async def new_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -373,7 +489,7 @@ async def new_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     if chat_id in active_games:
-        await update.message.reply_text("⚠️ هناك لعبة جارية بالفعل في هذه المجموعة!")
+        await update.message.reply_text("⚠️ هناك لعبة جارية بالفعل!")
         return
     
     game_id = generate_game_key()
@@ -389,6 +505,9 @@ async def new_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'votes': {},
         'kill_cooldown': {},
         'emergency_used': False,
+        'emergency_blocked': False,
+        'smoke_active': False,
+        'doors_locked': False,
         'start_time': datetime.now()
     }
     
@@ -398,17 +517,18 @@ async def new_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    game_text = (
-        f"🚀 لعبة جديدة قيد الإنشاء!\n\n"
-        f"معرف اللعبة: {game_id}\n"
+    await update.message.reply_text(
+        f"🚀 *لعبة جديدة قيد الإنشاء!*\n\n"
+        f"معرف اللعبة: `{game_id}`\n"
         f"المنشئ: {user.first_name}\n\n"
         f"👥 اكتب /join للانضمام\n"
         f"الحد الأدنى: 4 لاعبين\n"
         f"الحد الأقصى: 10 لاعبين\n\n"
-        f"⚠️ اللعبة ستبدأ تلقائياً عند اكتمال العدد!"
+        f"⚠️ اللعبة ستبدأ تلقائياً عند اكتمال العدد!",
+        reply_markup=reply_markup,
+        parse_mode='Markdown'
     )
     
-    await update.message.reply_text(game_text, reply_markup=reply_markup)
     register_group(chat_id, update.effective_chat.title or "مجموعة")
 
 async def join_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -430,7 +550,7 @@ async def join_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     if len(game['players']) >= 10:
-        await update.message.reply_text("❌ اللعبة مكتملة (10 لاعبين كحد أقصى)!")
+        await update.message.reply_text("❌ اللعبة مكتملة!")
         return
     
     game['players'][user.id] = {
@@ -439,7 +559,8 @@ async def join_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'role': None,
         'alive': True,
         'tasks': 0,
-        'total_tasks': 3
+        'total_tasks': 3,
+        'shield': False
     }
     
     get_user(user.id)
@@ -448,7 +569,7 @@ async def join_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"✅ {user.first_name} انضم للعبة! ({player_count}/10)")
     
     if player_count >= 4:
-        await update.message.reply_text("🎮 اكتمل العدد! جاري بدء اللعبة...\nسيتم توزيع الأدوار الآن...")
+        await update.message.reply_text("🎮 اكتمل العدد! جاري بدء اللعبة...\n🔥 سيتم توزيع الأدوار والأدوات الآن...")
         await start_game(chat_id, context)
 
 async def leave_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -473,7 +594,6 @@ async def leave_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"👋 {user.first_name} غادر اللعبة!")
 
 async def game_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """عرض حالة اللعبة الحالية"""
     chat_id = update.effective_chat.id
     
     if chat_id not in active_games:
@@ -482,24 +602,29 @@ async def game_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     game = active_games[chat_id]
     
-    status_text = "📊 حالة اللعبة الحالية:\n\n"
+    status_text = "📊 *حالة اللعبة الحالية:*\n\n"
     
     for pid, pdata in game['players'].items():
         name = get_player_name(pdata)
         if pdata['alive']:
-            status_emoji = "✅"
-            status_text += f"{status_emoji} {name} - حي يرزق\n"
+            status_text += f"✅ {name} - حي"
+            if pdata.get('shield'):
+                status_text += " 🛡️"
+            status_text += "\n"
         else:
-            status_emoji = "💀"
-            status_text += f"{status_emoji} {name} - ميت\n"
+            status_text += f"💀 {name} - ميت\n"
     
-    status_text += f"\n🎮 حالة اللعبة: {game['status']}\n"
-    status_text += f"👥 اللاعبين الأحياء: {sum(1 for p in game['players'].values() if p['alive'])}/{len(game['players'])}"
+    status_text += f"\n🎮 الحالة: {game['status']}\n"
+    status_text += f"👥 الأحياء: {sum(1 for p in game['players'].values() if p['alive'])}/{len(game['players'])}"
     
-    await update.message.reply_text(status_text)
+    if game.get('smoke_active'):
+        status_text += "\n💨 الدخان منتشر! الكاميرات معطلة"
+    if game.get('doors_locked'):
+        status_text += "\n🚪 الأبواب مقفلة!"
+    
+    await update.message.reply_text(status_text, parse_mode='Markdown')
 
 async def emergency_meeting(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """اجتماع طارئ للتشاور"""
     chat_id = update.effective_chat.id
     user = update.effective_user
     
@@ -517,6 +642,10 @@ async def emergency_meeting(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ لا يمكنك استخدام الاجتماع الطارئ!")
         return
     
+    if game.get('emergency_blocked'):
+        await update.message.reply_text("📵 الاتصالات معطلة! لا يمكن عقد اجتماع الآن")
+        return
+    
     if game.get('emergency_used'):
         await update.message.reply_text("❌ تم استخدام الاجتماع الطارئ مسبقاً!")
         return
@@ -524,14 +653,180 @@ async def emergency_meeting(update: Update, context: ContextTypes.DEFAULT_TYPE):
     game['emergency_used'] = True
     game['status'] = 'emergency'
     
-    await update.message.reply_text(
-        f"🚨 اجتماع طارئ! {user.first_name} طلب اجتماع طارئ!\n\n"
-        f"⏰ لديكم 90 ثانية للنقاش...\n"
-        f"بعدها سيبدأ التصويت مباشرة!"
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=(
+            f"🚨🔴🚨 *اجتماع طارئ!*\n\n"
+            f"👤 {user.first_name} طلب اجتماع طارئ!\n\n"
+            f"⏰ *لديكم 90 ثانية للنقاش...*\n"
+            f"💬 تبادلوا المعلومات والشكوك\n"
+            f"🔍 من المشتبه به؟\n\n"
+            f"⚠️ بعد 90 ثانية سيبدأ التصويت مباشرة!"
+        ),
+        parse_mode='Markdown'
     )
     
-    await asyncio.sleep(90)
+    # عداد تنازلي
+    for remaining in [60, 30, 15, 10, 5]:
+        await asyncio.sleep(max(0, remaining - (90 - remaining)))
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=f"⏰ باقي {remaining} ثانية على التصويت!"
+        )
+    
     await start_voting(chat_id, context, from_emergency=True)
+
+async def show_tools(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """عرض الأدوات المتاحة"""
+    user = update.effective_user
+    user_id = user.id
+    
+    if user_id not in user_tools or not user_tools[user_id]:
+        await update.message.reply_text("🎒 ليس لديك أدوات حالياً! استمر في اللعب لتحصل عليها")
+        return
+    
+    tools = user_tools[user_id]
+    
+    keyboard = []
+    for i, tool in enumerate(tools):
+        keyboard.append([InlineKeyboardButton(
+            f"{tool['emoji']} {tool['name']} - {tool['description']}", 
+            callback_data=f"usetool_{user_id}_{i}"
+        )])
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.message.reply_text(
+        "🎒 *أدواتك المتاحة:*\n\nاختر أداة لاستخدامها",
+        reply_markup=reply_markup,
+        parse_mode='Markdown'
+    )
+
+async def handle_tool_use(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """معالجة استخدام الأداة"""
+    query = update.callback_query
+    await query.answer()
+    
+    data = query.data
+    if not data.startswith('usetool_'):
+        return
+    
+    parts = data.split('_')
+    user_id = int(parts[1])
+    tool_index = int(parts[2])
+    
+    user = query.from_user
+    if user.id != user_id:
+        await query.answer("❌ هذه الأدوات ليست لك!", show_alert=True)
+        return
+    
+    if user_id not in user_tools or tool_index >= len(user_tools[user_id]):
+        await query.edit_message_text("❌ الأداة غير متاحة!")
+        return
+    
+    tool = user_tools[user_id][tool_index]
+    
+    # حذف الأداة من المخزون
+    user_tools[user_id].pop(tool_index)
+    
+    # البحث عن اللعبة
+    game = None
+    group_id = None
+    for gid, g in active_games.items():
+        if user_id in g['players']:
+            game = g
+            group_id = gid
+            break
+    
+    if not game or game['status'] != 'playing':
+        await query.edit_message_text("❌ لا يمكنك استخدام الأداة الآن!")
+        return
+    
+    effect = tool['effect']
+    
+    if effect == 'track':
+        alive = [pid for pid, p in game['players'].items() if p['alive'] and pid != user_id]
+        if alive:
+            target_id = random.choice(alive)
+            target_name = get_player_name(game['players'][target_id])
+            location = random.choice(LOCATIONS)
+            msg = tool['message'].format(target=target_name, location=location)
+            await query.edit_message_text(f"📡 *جهاز التتبع:*\n\n{msg}", parse_mode='Markdown')
+    
+    elif effect == 'camera':
+        alive = [pid for pid, p in game['players'].items() if p['alive'] and pid != user_id and not game.get('smoke_active')]
+        if alive:
+            target_id = random.choice(alive)
+            target_name = get_player_name(game['players'][target_id])
+            is_impostor = game['players'][target_id]['role'] == 'impostor'
+            status = "😈 مشبوه! تحركاته غريبة" if is_impostor else "👨‍🚀 يبدو طبيعياً"
+            msg = tool['message'].format(target=target_name, status=status)
+            await query.edit_message_text(f"📸 *كاميرا المراقبة:*\n\n{msg}", parse_mode='Markdown')
+    
+    elif effect == 'lie_detector':
+        alive = [pid for pid, p in game['players'].items() if p['alive'] and pid != user_id]
+        if alive:
+            target_id = random.choice(alive)
+            target_name = get_player_name(game['players'][target_id])
+            is_impostor = game['players'][target_id]['role'] == 'impostor'
+            status = "😰 متوتر... يكذب!" if is_impostor else "😊 هادئ... صادق"
+            msg = tool['message'].format(target=target_name, status=status)
+            await query.edit_message_text(f"🕵️ *جهاز كشف الكذب:*\n\n{msg}", parse_mode='Markdown')
+    
+    elif effect == 'shield':
+        game['players'][user_id]['shield'] = True
+        await query.edit_message_text("🛡️ *درع واقي!*\n\nتم تفعيل الدرع! أنت محمي من القتل لمرة واحدة", parse_mode='Markdown')
+    
+    elif effect == 'speed_boost':
+        game['players'][user_id]['tasks'] = min(game['players'][user_id]['total_tasks'], game['players'][user_id]['tasks'] + 2)
+        await query.edit_message_text("⚡ *مسرع المهام!*\n\nالسرعة تضاعفت! أنهيت مهمتين مع بعض!", parse_mode='Markdown')
+    
+    elif effect == 'smoke_bomb':
+        game['smoke_active'] = True
+        await context.bot.send_message(chat_id=group_id, text="💨 *قنبلة دخان!*\n\nدخان كثيف ملأ المكان! الكاميرات تعطلت لمدة دقيقة", parse_mode='Markdown')
+        await asyncio.sleep(60)
+        game['smoke_active'] = False
+        await context.bot.send_message(chat_id=group_id, text="💨 انقشع الدخان! الكاميرات عادت للعمل")
+        await query.edit_message_text("💨 تم تفعيل قنبلة الدخان!")
+    
+    elif effect == 'disguise':
+        task = random.choice(CREWMATE_TASKS)
+        game['players'][user_id]['tasks'] += 1
+        await query.edit_message_text(f"🎭 *تنكر!*\n\nتنكرت كطاقم وأكملت مهمة: {task['emoji']} {task['name']} بنجاح!", parse_mode='Markdown')
+    
+    elif effect == 'lock_doors':
+        game['doors_locked'] = True
+        await context.bot.send_message(chat_id=group_id, text="🚪🔒 *الأبواب اتقفلت!*\n\nالطاقم محبوس 30 ثانية! القاتل يتحرك بحرية!", parse_mode='Markdown')
+        await asyncio.sleep(30)
+        game['doors_locked'] = False
+        await context.bot.send_message(chat_id=group_id, text="🚪🔓 الأبواب اتفتحت!")
+        await query.edit_message_text("🚪 تم قفل الأبواب!")
+    
+    elif effect == 'poison':
+        alive = [pid for pid, p in game['players'].items() if p['alive'] and pid != user_id and p['role'] != 'impostor']
+        victims = random.sample(alive, min(2, len(alive)))
+        for vid in victims:
+            game['players'][vid]['alive'] = False
+            game['dead_players'].append(vid)
+            if vid in game['alive_crewmates']:
+                game['alive_crewmates'].remove(vid)
+        
+        victim_names = [get_player_name(game['players'][vid]) for vid in victims]
+        await context.bot.send_message(
+            chat_id=group_id,
+            text=f"🧪☠️ *سم قاتل!*\n\n💀 {victim_names[0]} و {victim_names[1] if len(victims) > 1 else ''} ماتوا مسموين!\n\n🚨 اجتماع طارئ!",
+            parse_mode='Markdown'
+        )
+        await query.edit_message_text("🧪 تم نشر السم!")
+        await start_voting(group_id, context)
+    
+    elif effect == 'jam_comms':
+        game['emergency_blocked'] = True
+        await context.bot.send_message(chat_id=group_id, text="📵 *تشويش الاتصالات!*\n\nممنوع اجتماع الطوارئ لمدة دقيقة!", parse_mode='Markdown')
+        await asyncio.sleep(60)
+        game['emergency_blocked'] = False
+        await context.bot.send_message(chat_id=group_id, text="📶 عادت الاتصالات! يمكنكم عقد اجتماع طارئ الآن")
+        await query.edit_message_text("📵 تم تشويش الاتصالات!")
 
 async def start_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
     game = active_games[chat_id]
@@ -546,16 +841,25 @@ async def start_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
         game['players'][imp_id]['role'] = 'impostor'
         game['impostors'].append(imp_id)
         
+        # إعطاء أدوات للقاتل
+        num_tools = random.randint(1, 3)
+        user_tools[imp_id] = random.sample(IMPOSTOR_TOOLS, num_tools)
+        tools_names = [f"{t['emoji']} {t['name']}" for t in user_tools[imp_id]]
+        
         try:
-            imp_text = (
-                f"🔪 أنت القاتل!\n\n"
-                f"مهمتك: القضاء على كل أفراد الطاقم!\n\n"
-                f"🎭 مهامك وهمية (ستفشل دائماً) - لكن اضغط أزرار عشان تتظاهر\n\n"
-                f"💀 للقتل: استخدم /kill @username في الخاص\n"
-                f"⏰ يمكنك القتل كل 30 ثانية\n\n"
-                f"⚠️ كن حذراً: نفذ مهام وهمية لتتظاهر أنك طاقم!"
+            await context.bot.send_message(
+                chat_id=imp_id,
+                text=(
+                    f"🔪 *أنت القاتل!*\n\n"
+                    f"مهمتك: القضاء على كل أفراد الطاقم!\n\n"
+                    f"🎭 مهامك وهمية (ستفشل دائماً)\n\n"
+                    f"🎒 *أدواتك:*\n" + "\n".join(tools_names) + "\n\n"
+                    f"💀 للقتل: /kill @username في الخاص\n"
+                    f"🎒 أدواتك: /tools\n\n"
+                    f"⚠️ كن حذراً! الطاقم يمتلك أدوات مساعدة أيضاً!"
+                ),
+                parse_mode='Markdown'
             )
-            await context.bot.send_message(chat_id=imp_id, text=imp_text)
         except:
             pass
     
@@ -563,36 +867,65 @@ async def start_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
         game['players'][crew_id]['role'] = 'crewmate'
         game['alive_crewmates'].append(crew_id)
         
+        # إعطاء أدوات للطاقم
+        num_tools = random.randint(1, 2)
+        user_tools[crew_id] = random.sample(CREWMATE_TOOLS, num_tools)
+        tools_names = [f"{t['emoji']} {t['name']}" for t in user_tools[crew_id]]
+        
         try:
-            crew_text = (
-                f"👨‍🚀 أنت فرد طاقم!\n\n"
-                f"مهمتك: إكمال المهام التفاعلية واكتشاف القاتل!\n\n"
-                f"⚡ استخدم /tasks لتنفيذ مهمة تفاعلية\n"
-                f"🔍 راقب اللاعبين لاكتشاف المشتبه بهم\n\n"
-                f"🎯 أكمل 3 مهام للفوز مع الطاقم!"
+            await context.bot.send_message(
+                chat_id=crew_id,
+                text=(
+                    f"👨‍🚀 *أنت فرد طاقم!*\n\n"
+                    f"مهمتك: إكمال المهام التفاعلية واكتشاف القاتل!\n\n"
+                    f"🎒 *أدواتك:*\n" + "\n".join(tools_names) + "\n\n"
+                    f"⚡ /tasks لتنفيذ مهمة\n"
+                    f"🎒 /tools لاستخدام الأدوات\n"
+                    f"🚨 /emergency لاجتماع طارئ\n"
+                    f"📊 /status لمعرفة حالة اللاعبين\n\n"
+                    f"🎯 أكمل 3 مهام للفوز!"
+                ),
+                parse_mode='Markdown'
             )
-            await context.bot.send_message(chat_id=crew_id, text=crew_text)
         except:
             pass
     
     game['status'] = 'playing'
     game['start_time'] = datetime.now()
     
-    game_text = (
-        f"🚀 انطلقت اللعبة!\n\n"
-        f"👥 عدد اللاعبين: {len(players)}\n"
-        f"🔪 عدد القتلة: {impostor_count}\n\n"
-        f"⚡ الطاقم: نفذوا مهامكم بـ /tasks\n"
-        f"🔪 القاتل: اقتل بهدوء بـ /kill @username في الخاص\n"
-        f"🚨 استخدم /emergency لاجتماع طارئ\n"
-        f"📊 استخدم /status لمعرفة حالة اللاعبين\n\n"
-        f"⚠️ لا تتحدثوا عن أدواركم في المجموعة!"
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=(
+            f"🚀🔥🚀 *انطلقت اللعبة!*\n\n"
+            f"👥 عدد اللاعبين: {len(players)}\n"
+            f"🔪 عدد القتلة: {impostor_count}\n\n"
+            f"⚡ الطاقم: /tasks للمهام | /tools للأدوات\n"
+            f"🔪 القاتل: /kill @username في الخاص\n"
+            f"🚨 /emergency لاجتماع طارئ\n"
+            f"📊 /status لمعرفة حالة اللاعبين\n\n"
+            f"🎒 *كل لاعب لديه أدوات مساعدة!*\n\n"
+            f"⚠️ لا تتحدثوا عن أدواركم في المجموعة!\n"
+            f"🔥 *فلتبدأ الإثارة!*"
+        ),
+        parse_mode='Markdown'
     )
     
-    await context.bot.send_message(chat_id=chat_id, text=game_text)
+    # بدء الأحداث العشوائية
+    asyncio.create_task(random_events(chat_id, context))
+
+async def random_events(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
+    """تشغيل الأحداث العشوائية"""
+    while chat_id in active_games and active_games[chat_id]['status'] == 'playing':
+        await asyncio.sleep(random.randint(30, 90))
+        if chat_id in active_games and active_games[chat_id]['status'] == 'playing':
+            event = random.choice(RANDOM_EVENTS)
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=event['message'],
+                parse_mode='Markdown'
+            )
 
 async def execute_task(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """تنفيذ مهمة تفاعلية"""
     user = update.effective_user
     user_id = user.id
     
@@ -610,6 +943,10 @@ async def execute_task(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if game['status'] != 'playing':
         await update.message.reply_text("❌ اللعبة لم تبدأ بعد!")
+        return
+    
+    if game.get('doors_locked') and game['players'][user_id]['role'] == 'crewmate':
+        await update.message.reply_text("🚪 الأبواب مقفلة! لا يمكنك التحرك حالياً")
         return
     
     player = game['players'][user_id]
@@ -632,8 +969,9 @@ async def execute_task(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await update.message.reply_text(
-            f"{task['emoji']} {task['name']}\n\n{task['description']}",
-            reply_markup=reply_markup
+            f"{task['emoji']} *{task['name']}*\n\n{task['description']}",
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
         )
     
     else:
@@ -646,12 +984,12 @@ async def execute_task(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await update.message.reply_text(
-            f"{task['emoji']} {task['name']}\n\n{task['description']}",
-            reply_markup=reply_markup
+            f"{task['emoji']} *{task['name']}*\n\n{task['description']}",
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
         )
 
 async def handle_task_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """معالجة ضغطات أزرار المهام"""
     query = update.callback_query
     await query.answer()
     
@@ -674,7 +1012,6 @@ async def handle_task_callback(update: Update, context: ContextTypes.DEFAULT_TYP
         
         game = active_games[group_id]
         
-        # البحث عن المهمة الصحيحة
         task = None
         for t in CREWMATE_TASKS:
             if t['correct'] == answer:
@@ -682,7 +1019,7 @@ async def handle_task_callback(update: Update, context: ContextTypes.DEFAULT_TYP
                 break
         
         if task:
-            await query.edit_message_text(f"{task['emoji']} {task['name']}\n\n{task['success']}")
+            await query.edit_message_text(f"{task['emoji']} *{task['name']}*\n\n{task['success']}", parse_mode='Markdown')
             game['players'][user_id]['tasks'] += 1
             update_user_points(user_id, 15, task=True)
             
@@ -705,9 +1042,8 @@ async def handle_task_callback(update: Update, context: ContextTypes.DEFAULT_TYP
             await query.answer("❌ هذه المهمة ليست لك!", show_alert=True)
             return
         
-        # مهمة وهمية - تفشل دائماً
         task = random.choice(IMPOSTOR_TASKS)
-        await query.edit_message_text(f"{task['emoji']} {task['name']}\n\n{task['failure']}")
+        await query.edit_message_text(f"{task['emoji']} *{task['name']}*\n\n{task['failure']}", parse_mode='Markdown')
 
 async def kill_player(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -755,20 +1091,29 @@ async def kill_player(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ لم يتم العثور على اللاعب أو هو ميت بالفعل!")
         return
     
+    # التحقق من الدرع
+    if game['players'][victim_id].get('shield'):
+        game['players'][victim_id]['shield'] = False
+        await update.message.reply_text("🛡️ الضحية محمية بدرع! فشلت عملية القتل")
+        await context.bot.send_message(chat_id=group_id, text=f"🛡️ حاول أحدهم قتل {game['players'][victim_id]['first_name']} لكن الدرع حماه!")
+        return
+    
     scenario = random.choice(KILL_SCENARIOS)
     victim_name = game['players'][victim_id]['first_name']
+    location = random.choice(LOCATIONS)
     
+    # مشهد القتل الدرامي
     for msg in scenario['scene']:
-        await update.message.reply_text(msg)
-        await asyncio.sleep(1)
+        await update.message.reply_text(msg, parse_mode='Markdown')
+        await asyncio.sleep(1.5)
     
     game['players'][victim_id]['alive'] = False
     game['dead_players'].append(victim_id)
     if victim_id in game['alive_crewmates']:
         game['alive_crewmates'].remove(victim_id)
     
-    death_msg = scenario['death_message'].format(victim=victim_name)
-    await context.bot.send_message(chat_id=group_id, text=death_msg)
+    death_msg = scenario['death_message'].format(victim=victim_name, location=location)
+    await context.bot.send_message(chat_id=group_id, text=death_msg, parse_mode='Markdown')
     
     update_user_points(user_id, 30, kill=True)
     
@@ -783,29 +1128,35 @@ async def start_voting(chat_id: int, context: ContextTypes.DEFAULT_TYPE, from_em
     alive_players = {pid: p for pid, p in game['players'].items() if p['alive']}
     
     if from_emergency:
-        vote_text = "🚨 انتهى وقت النقاش! جولة تصويت!\n\nصوتوا لطرد المشتبه به:\n\n"
+        vote_text = "🚨 *انتهى وقت النقاش!*\n\n🗳️ *جولة تصويت!*\n\nصوتوا لطرد المشتبه به:\n\n"
     else:
-        vote_text = "🗳️ جولة تصويت!\n\nتم اكتشاف جثة! صوتوا لطرد المشتبه به:\n\n"
+        vote_text = "🗳️🔪🗳️ *جولة تصويت!*\n\nمن المشتبه به؟ صوتوا لطرده:\n\n"
     
     keyboard = []
     for pid, pdata in alive_players.items():
         name = get_player_name(pdata)
         vote_text += f"• {name} (@{pdata['username']})\n"
         keyboard.append([InlineKeyboardButton(
-            f"🗳️ {name}", 
+            f"🗳️ طرد {name}", 
             callback_data=f"vote_{chat_id}_{pid}"
         )])
     
     keyboard.append([InlineKeyboardButton("⏭️ تخطي التصويت", callback_data=f"vote_{chat_id}_skip")])
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await context.bot.send_message(
+    msg = await context.bot.send_message(
         chat_id=chat_id,
-        text=vote_text + "\n⏰ لديكم 60 ثانية للتصويت!",
-        reply_markup=reply_markup
+        text=vote_text + "\n⏰ *لديكم 60 ثانية للتصويت!*",
+        reply_markup=reply_markup,
+        parse_mode='Markdown'
     )
     
-    await asyncio.sleep(60)
+    # عداد تنازلي
+    for remaining in [45, 30, 15, 10, 5]:
+        await asyncio.sleep(max(0, remaining - (60 - remaining)))
+        if chat_id in active_games and active_games[chat_id]['status'] == 'voting':
+            await context.bot.send_message(chat_id=chat_id, text=f"⏰ باقي {remaining} ثانية!")
+    
     await end_voting(chat_id, context)
 
 async def vote_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -883,10 +1234,12 @@ async def end_voting(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             chat_id=chat_id,
             text=(
-                f"🎉 تم طرد القاتل!\n\n"
+                f"🎉🚀🎉 *تم طرد القاتل!*\n\n"
                 f"🔪 {player_name} كان القاتل!\n\n"
-                f"✅ تم طرده من السفينة"
-            )
+                f"✅ تم طرده من السفينة إلى الفضاء!\n"
+                f"💫 انتصار للطاقم!"
+            ),
+            parse_mode='Markdown'
         )
         
         update_user_points(player_id, 0, won=False, role='impostor')
@@ -899,10 +1252,12 @@ async def end_voting(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             chat_id=chat_id,
             text=(
-                f"😢 تم طرد بريء!\n\n"
+                f"😢💔😢 *تم طرد بريء!*\n\n"
                 f"👨‍🚀 {player_name} كان فرد طاقم!\n\n"
-                f"💔 الطاقم خسر عضواً"
-            )
+                f"💔 الطاقم خسر عضواً!\n"
+                f"😈 القاتل يضحك في الظلام..."
+            ),
+            parse_mode='Markdown'
         )
         
         update_user_points(player_id, 0, won=False, role='crewmate')
@@ -921,7 +1276,7 @@ async def end_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE, winner: str
     game['status'] = 'ended'
     
     if winner == 'crewmate':
-        win_text = "🎉 الطاقم يفوز! تم اكتشاف كل القتلة!"
+        win_text = "🎉🏆🎉 *الطاقم يفوز!*"
         win_points = 100
         
         for pid in game['alive_crewmates']:
@@ -931,7 +1286,7 @@ async def end_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE, winner: str
             update_user_points(imp_id, 0, won=False, role='impostor')
     
     else:
-        win_text = "🔪 القاتل يفوز! تم القضاء على الطاقم!"
+        win_text = "🔪👑🔪 *القاتل ينتصر!*"
         win_points = 150
         
         for imp_id in game['impostors']:
@@ -944,24 +1299,29 @@ async def end_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE, winner: str
     duration = datetime.now() - game['start_time']
     result_text = (
         f"{win_text}\n\n"
-        f"🏆 نهاية الجولة!\n\n"
-        f"📊 الإحصائيات:\n"
-        f"• المدة: {duration}\n"
-        f"• القتلة: {len(game['impostors'])}\n"
-        f"• الطاقم: {len(game['players']) - len(game['impostors'])}\n\n"
+        f"🏆 *نهاية الجولة!*\n\n"
+        f"📊 *الإحصائيات:*\n"
+        f"• ⏱️ المدة: {duration}\n"
+        f"• 🔪 القتلة: {len(game['impostors'])}\n"
+        f"• 👨‍🚀 الطاقم: {len(game['players']) - len(game['impostors'])}\n\n"
         f"🎮 اكتب /new_game لجولة جديدة!"
     )
     
-    await context.bot.send_message(chat_id=chat_id, text=result_text)
+    await context.bot.send_message(chat_id=chat_id, text=result_text, parse_mode='Markdown')
     
-    roles_text = "👤 الأدوار:\n\n"
+    roles_text = "👤 *الأدوار النهائية:*\n\n"
     for pid, pdata in game['players'].items():
         role_emoji = "🔪" if pdata['role'] == 'impostor' else "👨‍🚀"
         alive_status = "💀 ميت" if not pdata['alive'] else "✅ حي"
         name = get_player_name(pdata)
         roles_text += f"{role_emoji} {name} - {alive_status}\n"
     
-    await context.bot.send_message(chat_id=chat_id, text=roles_text)
+    await context.bot.send_message(chat_id=chat_id, text=roles_text, parse_mode='Markdown')
+    
+    # تنظيف الأدوات
+    for pid in game['players']:
+        if pid in user_tools:
+            del user_tools[pid]
     
     del active_games[chat_id]
 
@@ -973,7 +1333,7 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     name = db_user['first_name'] or db_user['username'] or 'لاعب'
     
     stats_text = (
-        f"📊 إحصائيات {name}\n\n"
+        f"📊 *إحصائيات {name}*\n\n"
         f"🏆 النقاط: {db_user['points']}\n"
         f"🎮 عدد الجولات: {db_user['games_played']}\n"
         f"✅ مرات الفوز: {db_user['games_won']}\n\n"
@@ -984,7 +1344,7 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"📈 نسبة الفوز: {win_rate:.1f}%"
     )
     
-    await update.message.reply_text(stats_text)
+    await update.message.reply_text(stats_text, parse_mode='Markdown')
 
 async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
     leaders = get_leaderboard()
@@ -993,31 +1353,27 @@ async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("🏆 لا يوجد متصدرين بعد!")
         return
     
-    lb_text = "🏆 قائمة المتصدرين\n\n"
+    lb_text = "🏆 *قائمة المتصدرين*\n\n"
     
     medals = ["🥇", "🥈", "🥉"]
     for i, player in enumerate(leaders[:10]):
         medal = medals[i] if i < 3 else f"{i+1}."
-        # استخدام الاسم الأول أو اليوزرنيم
         name = player['first_name'] or player['username'] or f"لاعب {player['user_id']}"
         lb_text += f"{medal} {name}: {player['points']} نقطة | {player['games_won']} فوز\n"
     
-    await update.message.reply_text(lb_text)
+    await update.message.reply_text(lb_text, parse_mode='Markdown')
 
 async def referral(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     db_user = get_user(user.id)
     
-    ref_text = (
-        f"🔗 كود الإحالة الخاص بك\n\n"
-        f"{db_user['referral_code']}\n\n"
+    await update.message.reply_text(
+        f"🔗 *كود الإحالة الخاص بك*\n\n"
+        f"`{db_user['referral_code']}`\n\n"
         f"📢 شارك هذا الكود مع أصدقائك!\n"
-        f"عند استخدامهم للبوت، اربح 75 نقطة لكل صديق!\n\n"
-        f"🎁 للاستفادة من كود صديق:\n"
-        f"اكتب /referral كود_الصديق"
+        f"🎁 تربح 75 نقطة لكل صديق!",
+        parse_mode='Markdown'
     )
-    
-    await update.message.reply_text(ref_text)
 
 async def handle_referral_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -1075,7 +1431,6 @@ async def handle_referral_code(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
     
     data = query.data
     
@@ -1083,33 +1438,38 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await handle_task_callback(update, context)
     elif data.startswith('vote_'):
         await handle_vote_callback(update, context)
-    elif data == "start_playing":
-        await query.message.reply_text(
-            "🎮 أضفني لمجموعتك وارفعني مشرف وابدأ اللعب!\n"
-            "اكتب /new_game في المجموعة لبدء جولة"
-        )
-    elif data == "view_stats":
-        user = query.from_user
-        db_user = get_user(user.id)
-        await query.message.reply_text(
-            f"📊 نقاطك: {db_user['points']}\n"
-            f"🎮 جولاتك: {db_user['games_played']}\n"
-            f"✅ فوزك: {db_user['games_won']}"
-        )
-    elif data == "view_leaderboard":
-        leaders = get_leaderboard()
-        text = "🏆 المتصدرين:\n"
-        for i, p in enumerate(leaders[:5], 1):
-            name = p['first_name'] or p['username'] or f"لاعب {p['user_id']}"
-            text += f"{i}. {name}: {p['points']} نقطة\n"
-        await query.message.reply_text(text)
-    elif data == "referral_code":
-        user = query.from_user
-        db_user = get_user(user.id)
-        await query.message.reply_text(
-            f"🔗 كود الإحالة: {db_user['referral_code']}\n"
-            "شاركه مع أصدقائك لتربح 75 نقطة!"
-        )
+    elif data.startswith('usetool_'):
+        await handle_tool_use(update, context)
+    else:
+        await query.answer()
+        
+        if data == "start_playing":
+            await query.message.reply_text(
+                "🎮 أضفني لمجموعتك وارفعني مشرف وابدأ اللعب!\n"
+                "اكتب /new_game في المجموعة لبدء جولة"
+            )
+        elif data == "view_stats":
+            user = query.from_user
+            db_user = get_user(user.id)
+            await query.message.reply_text(
+                f"📊 نقاطك: {db_user['points']}\n"
+                f"🎮 جولاتك: {db_user['games_played']}\n"
+                f"✅ فوزك: {db_user['games_won']}"
+            )
+        elif data == "view_leaderboard":
+            leaders = get_leaderboard()
+            text = "🏆 المتصدرين:\n"
+            for i, p in enumerate(leaders[:5], 1):
+                name = p['first_name'] or p['username'] or f"لاعب {p['user_id']}"
+                text += f"{i}. {name}: {p['points']} نقطة\n"
+            await query.message.reply_text(text)
+        elif data == "referral_code":
+            user = query.from_user
+            db_user = get_user(user.id)
+            await query.message.reply_text(
+                f"🔗 كود الإحالة: {db_user['referral_code']}\n"
+                "شاركه مع أصدقائك لتربح 75 نقطة!"
+            )
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.error(f"Update {update} caused error {context.error}")
@@ -1134,6 +1494,7 @@ def main():
     app.add_handler(CommandHandler("tasks", execute_task))
     app.add_handler(CommandHandler("status", game_status))
     app.add_handler(CommandHandler("emergency", emergency_meeting))
+    app.add_handler(CommandHandler("tools", show_tools))
     app.add_handler(CommandHandler("kill", kill_player))
     app.add_handler(CommandHandler("vote", vote_command))
     app.add_handler(CommandHandler("stats", stats))
@@ -1142,7 +1503,7 @@ def main():
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_error_handler(error_handler)
     
-    logger.info("🤖 بوت Among Us يعمل الآن!")
+    logger.info("🤖🔥 بوت Among Us يعمل الآن بكل الحماس!")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
