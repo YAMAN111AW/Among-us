@@ -34,50 +34,68 @@ CREWMATE_TASKS = [
     {
         "name": "إصلاح الأسلاك",
         "emoji": "🔌",
-        "messages": [
-            "⚡ الأسلاك متشابكة.. بتحاول تصلحها",
-            "🔧 لقيت السلك الأزرق مقطوع!",
-            "💡 وصلت الكهرباء أخيراً",
-            "✨ الأسلاك اتصدعت.. بتجرب توصيلها من جديد",
-            "🛠️ بتفك الأسلاك وتربطها صح"
+        "description": "الأسلاك متشابكة! اضغط على الزر الصحيح لتوصيلها",
+        "buttons": [
+            ["🔵 السلك الأزرق", "🟡 السلك الأصفر"],
+            ["🔴 السلك الأحمر", "🟢 السلك الأخضر"]
         ],
+        "correct": "🔵 السلك الأزرق",
         "success": "✅ تم إصلاح الأسلاك بنجاح! الأضواء رجعت تشتغل 🎉"
     },
     {
         "name": "مسح بطاقة الدخول",
         "emoji": "💳",
-        "messages": [
-            "🔄 بتمرر البطاقة... مرة تانية",
-            "⚠️ البطاقة مش مقروءة! جرب بسرعة أقل",
-            "🔍 بيقرأ البيانات... 45%",
-            "💢 الجهاز طلب كلمة سر قديمة!",
-            "📡 بيحاول يتواصل مع السيرفر المركزي"
+        "description": "اختر السرعة الصحيحة لتمرير البطاقة",
+        "buttons": [
+            ["🐢 بطيء", "🐇 سريع"],
+            ["🏃 سريع جداً", "🚶 متوسط"]
         ],
+        "correct": "🚶 متوسط",
         "success": "✅ تم مسح البطاقة! الباب اتفتح 🔓"
     },
     {
         "name": "تفريغ القمامة",
         "emoji": "🗑️",
-        "messages": [
-            "♻️ القمامة مليانة.. بتسحب الكيس",
-            "🤢 ريحة غريبة طالعة من الكيس!",
-            "🦠 بتشوف عفن عالكيس.. بتلبس قفازات",
-            "📦 بتربط الكيس وتحطه عند المخرج",
-            "🧹 بتنضف المكان بعد ما شلت القمامة"
+        "description": "اختر الكيس الصحيح لتفريغه",
+        "buttons": [
+            ["🟫 كيس بني", "⬛ كيس أسود"],
+            ["🟦 كيس أزرق", "🟩 كيس أخضر"]
         ],
+        "correct": "⬛ كيس أسود",
         "success": "✅ تم تفريغ القمامة! المكان أنضف 💫"
     },
     {
         "name": "تحميل البيانات",
         "emoji": "📤",
-        "messages": [
-            "📡 بيحمل البيانات للسحابة... 20%",
-            "🐌 النت بطيء! بيحول يغير السيرفر",
-            "⚡ السرعة اتحسنت! 67%",
-            "🔐 بيشفر الملفات قبل الرفع",
-            "📊 بيضغط البيانات عشان تخلص بسرعة"
+        "description": "اختر السيرفر الصحيح للتحميل",
+        "buttons": [
+            ["🌍 أوروبا", "🌎 أمريكا"],
+            ["🌏 آسيا", "🔒 محلي"]
         ],
+        "correct": "🔒 محلي",
         "success": "✅ تم تحميل البيانات! المهمة خلصت 💾"
+    },
+    {
+        "name": "معايرة المحرك",
+        "emoji": "⚙️",
+        "description": "اختر درجة الحرارة الصحيحة",
+        "buttons": [
+            ["🌡️ 100°", "🌡️ 200°"],
+            ["🌡️ 300°", "🌡️ 150°"]
+        ],
+        "correct": "🌡️ 150°",
+        "success": "✅ تمت معايرة المحرك! السفينة جاهزة 🚀"
+    },
+    {
+        "name": "تنظيف الفلتر",
+        "emoji": "🧹",
+        "description": "اختر الفلتر اللي يحتاج تنظيف",
+        "buttons": [
+            ["🔵 فلتر أزرق", "🔴 فلتر أحمر"],
+            ["🟡 فلتر أصفر", "⚪ فلتر أبيض"]
+        ],
+        "correct": "🔴 فلتر أحمر",
+        "success": "✅ تم تنظيف الفلتر! الهواء نقي 🌬️"
     }
 ]
 
@@ -85,25 +103,23 @@ IMPOSTOR_TASKS = [
     {
         "name": "تخريب المفاعل",
         "emoji": "☢️",
-        "messages": [
-            "💢 المفاعل سخن أوي! مش قادر تلمسه",
-            "⚠️ إنذار حريق اشتغل فجأة!",
-            "🔥 دخان طالع من الماكينة!",
-            "⚡ صعقة كهربا ضربتك!",
-            "🚨 كل الأضواء الحمرا اشتغلت!"
+        "description": "حاول تخريب المفاعل (ستهزم دائماً)",
+        "buttons": [
+            ["🔴 زر الطوارئ", "🟢 زر التشغيل"],
+            ["🟡 زر التعطيل", "🔵 زر التبريد"]
         ],
+        "any_click": True,
         "failure": "❌ فشل التخريب! المفاعل أمان زيادة عن اللزوم 💥"
     },
     {
         "name": "قطع الأكسجين",
         "emoji": "🫁",
-        "messages": [
-            "🌀 صمام الأكسجين متجمد!",
-            "💨 الهوا بيهرب من فتحة تانية!",
-            "🔧 المفتاح اتكسر جوا القفل!",
-            "😤 الضغط عالي ومش قادر تتحكم فيه",
-            "🆘 نظام الطوارئ اشتغل لوحده!"
+        "description": "حاول قطع الأكسجين (ستهزم دائماً)",
+        "buttons": [
+            ["🔧 صمام 1", "🔧 صمام 2"],
+            ["🔧 صمام 3", "🔧 صمام 4"]
         ],
+        "any_click": True,
         "failure": "❌ فشل قطع الأكسجين! النظام أمان قوي 🆘"
     }
 ]
@@ -137,15 +153,13 @@ KILL_SCENARIOS = [
 
 # ====== تخزين مؤقت للجلسات النشطة ======
 active_games = {}
-user_sessions = {}
+user_tasks = {}  # {user_id: task_message_id}
 
 # ====== دوال قاعدة البيانات ======
 def get_conn():
-    """الحصول على اتصال بقاعدة البيانات"""
     return psycopg2.connect(DATABASE_URL)
 
 def init_db():
-    """تهيئة قاعدة البيانات"""
     conn = get_conn()
     cursor = conn.cursor()
     
@@ -183,7 +197,6 @@ def init_db():
     logger.info("✅ تم تهيئة قاعدة البيانات")
 
 def get_user(user_id: int):
-    """جلب بيانات المستخدم"""
     conn = get_conn()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
@@ -206,7 +219,6 @@ def get_user(user_id: int):
 
 def update_user_points(user_id: int, points: int, won: bool = False, 
                        role: str = None, kill: bool = False, task: bool = False):
-    """تحديث نقاط وإحصائيات المستخدم"""
     conn = get_conn()
     cursor = conn.cursor()
     
@@ -236,7 +248,6 @@ def update_user_points(user_id: int, points: int, won: bool = False,
     conn.close()
 
 def get_leaderboard():
-    """جلب قائمة المتصدرين"""
     conn = get_conn()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
@@ -250,7 +261,6 @@ def get_leaderboard():
     return leaders
 
 def register_group(group_id: int, title: str):
-    """تسجيل مجموعة جديدة"""
     conn = get_conn()
     cursor = conn.cursor()
     
@@ -275,12 +285,9 @@ def get_impostor_count(player_count: int) -> int:
     else:
         return 3
 
-def escape_md(text: str) -> str:
-    """تنظيف النص من رموز Markdown الضارة"""
-    chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']
-    for char in chars:
-        text = text.replace(char, '\\' + char)
-    return text
+def get_player_name(player_data: dict) -> str:
+    """الحصول على اسم اللاعب بشكل آمن"""
+    return player_data.get('first_name') or player_data.get('username') or 'لاعب'
 
 # ====== معالجات الأوامر ======
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -292,21 +299,23 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"أنا بوت Among Us في تليجرام!\n"
         f"العب مع أصدقائك في المجموعات واكتشف القاتل!\n\n"
         f"👥 طريقة اللعب:\n"
-        f"1. أضفني لمجموعتك\n"
+        f"1. أضفني لمجموعتك وارفعني مشرف\n"
         f"2. اكتب /new_game لبدء جولة\n"
         f"3. استخدم /join للانضمام\n"
-        f"4. نفذ المهام بـ /tasks\n"
+        f"4. نفذ المهام التفاعلية بـ /tasks\n"
         f"5. صوت لطرد المشتبه بـ /vote\n\n"
         f"🏆 الأوامر الرئيسية:\n"
         f"/start - البدء\n"
         f"/new_game - إنشاء لعبة جديدة\n"
         f"/join - انضمام للعبة\n"
         f"/leave - مغادرة اللعبة\n"
-        f"/tasks - تنفيذ مهمة\n"
+        f"/tasks - تنفيذ مهمة تفاعلية\n"
+        f"/status - حالة اللعبة الحالية\n"
+        f"/emergency - اجتماع طارئ\n"
         f"/vote - التصويت للطرد\n"
         f"/stats - إحصائياتك\n"
         f"/leaderboard - المتصدرين\n"
-        f"/referral - كود الإحالة الخاص بك\n"
+        f"/referral - كود الإحالة\n"
         f"/help - المساعدة\n\n"
         f"🎁 نظام الإحالات:\n"
         f"انسخ كود الإحالة خاصتك وشاركه مع أصدقائك\n"
@@ -332,15 +341,16 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "2. الانضمام:\n"
         "- اكتب /join للانضمام للجولة\n"
         "- الحد الأقصى 10 لاعبين\n\n"
-        "3. المهام:\n"
-        "- أفراد الطاقم: استخدم /tasks لتنفيذ المهام\n"
+        "3. المهام التفاعلية:\n"
+        "- اكتب /tasks لتنفيذ مهمة\n"
+        "- اضغط على الأزرار لإكمال المهمة\n"
         "- القاتل: مهامه وهمية وتفشل دائماً\n\n"
         "4. القتل (للقاتل فقط):\n"
         "- اكتب /kill @username في الخاص\n"
         "- تقدر تقتل كل 30 ثانية\n\n"
         "5. التصويت:\n"
         "- عند اكتشاف جثة، يبدأ التصويت تلقائياً\n"
-        "- استخدم /vote @username للتصويت\n\n"
+        "- استخدم /emergency لاجتماع طارئ\n\n"
         "6. الفوز:\n"
         "- الطاقم يفوز: عند طرد كل القتلة\n"
         "- القاتل يفوز: عند قتل كل الطاقم\n\n"
@@ -378,6 +388,7 @@ async def new_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'tasks_completed': {},
         'votes': {},
         'kill_cooldown': {},
+        'emergency_used': False,
         'start_time': datetime.now()
     }
     
@@ -461,6 +472,67 @@ async def leave_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     del game['players'][user.id]
     await update.message.reply_text(f"👋 {user.first_name} غادر اللعبة!")
 
+async def game_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """عرض حالة اللعبة الحالية"""
+    chat_id = update.effective_chat.id
+    
+    if chat_id not in active_games:
+        await update.message.reply_text("❌ لا توجد لعبة نشطة!")
+        return
+    
+    game = active_games[chat_id]
+    
+    status_text = "📊 حالة اللعبة الحالية:\n\n"
+    
+    for pid, pdata in game['players'].items():
+        name = get_player_name(pdata)
+        if pdata['alive']:
+            status_emoji = "✅"
+            status_text += f"{status_emoji} {name} - حي يرزق\n"
+        else:
+            status_emoji = "💀"
+            status_text += f"{status_emoji} {name} - ميت\n"
+    
+    status_text += f"\n🎮 حالة اللعبة: {game['status']}\n"
+    status_text += f"👥 اللاعبين الأحياء: {sum(1 for p in game['players'].values() if p['alive'])}/{len(game['players'])}"
+    
+    await update.message.reply_text(status_text)
+
+async def emergency_meeting(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """اجتماع طارئ للتشاور"""
+    chat_id = update.effective_chat.id
+    user = update.effective_user
+    
+    if chat_id not in active_games:
+        await update.message.reply_text("❌ لا توجد لعبة نشطة!")
+        return
+    
+    game = active_games[chat_id]
+    
+    if game['status'] != 'playing':
+        await update.message.reply_text("❌ اللعبة لم تبدأ بعد!")
+        return
+    
+    if user.id not in game['players'] or not game['players'][user.id]['alive']:
+        await update.message.reply_text("❌ لا يمكنك استخدام الاجتماع الطارئ!")
+        return
+    
+    if game.get('emergency_used'):
+        await update.message.reply_text("❌ تم استخدام الاجتماع الطارئ مسبقاً!")
+        return
+    
+    game['emergency_used'] = True
+    game['status'] = 'emergency'
+    
+    await update.message.reply_text(
+        f"🚨 اجتماع طارئ! {user.first_name} طلب اجتماع طارئ!\n\n"
+        f"⏰ لديكم 90 ثانية للنقاش...\n"
+        f"بعدها سيبدأ التصويت مباشرة!"
+    )
+    
+    await asyncio.sleep(90)
+    await start_voting(chat_id, context, from_emergency=True)
+
 async def start_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
     game = active_games[chat_id]
     players = list(game['players'].keys())
@@ -475,12 +547,11 @@ async def start_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
         game['impostors'].append(imp_id)
         
         try:
-            imp_tasks_list = "\n".join([f"{t['emoji']} {t['name']}" for t in IMPOSTOR_TASKS])
             imp_text = (
                 f"🔪 أنت القاتل!\n\n"
                 f"مهمتك: القضاء على كل أفراد الطاقم!\n\n"
-                f"🎭 مهامك الوهمية (ستفشل دائماً):\n{imp_tasks_list}\n\n"
-                f"💀 للقتل: استخدم /kill @username\n"
+                f"🎭 مهامك وهمية (ستفشل دائماً) - لكن اضغط أزرار عشان تتظاهر\n\n"
+                f"💀 للقتل: استخدم /kill @username في الخاص\n"
                 f"⏰ يمكنك القتل كل 30 ثانية\n\n"
                 f"⚠️ كن حذراً: نفذ مهام وهمية لتتظاهر أنك طاقم!"
             )
@@ -493,12 +564,10 @@ async def start_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
         game['alive_crewmates'].append(crew_id)
         
         try:
-            crew_tasks_list = "\n".join([f"{t['emoji']} {t['name']}" for t in CREWMATE_TASKS])
             crew_text = (
                 f"👨‍🚀 أنت فرد طاقم!\n\n"
-                f"مهمتك: إكمال المهام واكتشاف القاتل!\n\n"
-                f"✅ مهامك:\n{crew_tasks_list}\n\n"
-                f"⚡ استخدم /tasks لتنفيذ المهام\n"
+                f"مهمتك: إكمال المهام التفاعلية واكتشاف القاتل!\n\n"
+                f"⚡ استخدم /tasks لتنفيذ مهمة تفاعلية\n"
                 f"🔍 راقب اللاعبين لاكتشاف المشتبه بهم\n\n"
                 f"🎯 أكمل 3 مهام للفوز مع الطاقم!"
             )
@@ -514,14 +583,16 @@ async def start_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
         f"👥 عدد اللاعبين: {len(players)}\n"
         f"🔪 عدد القتلة: {impostor_count}\n\n"
         f"⚡ الطاقم: نفذوا مهامكم بـ /tasks\n"
-        f"🔪 القاتل: اقتل بهدوء بـ /kill @username\n\n"
-        f"🎭 تذكروا: القاتل يتظاهر بتنفيذ المهام لكنها تفشل دائماً!\n\n"
+        f"🔪 القاتل: اقتل بهدوء بـ /kill @username في الخاص\n"
+        f"🚨 استخدم /emergency لاجتماع طارئ\n"
+        f"📊 استخدم /status لمعرفة حالة اللاعبين\n\n"
         f"⚠️ لا تتحدثوا عن أدواركم في المجموعة!"
     )
     
     await context.bot.send_message(chat_id=chat_id, text=game_text)
 
 async def execute_task(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """تنفيذ مهمة تفاعلية"""
     user = update.effective_user
     user_id = user.id
     
@@ -553,42 +624,90 @@ async def execute_task(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if player['role'] == 'crewmate':
         task = random.choice(CREWMATE_TASKS)
-        message = random.choice(task['messages'])
         
-        await update.message.reply_text(f"{task['emoji']} {task['name']}\n\n{message}")
-        await asyncio.sleep(2)
-        await update.message.reply_text(task['success'])
+        keyboard = []
+        for row in task['buttons']:
+            keyboard.append([InlineKeyboardButton(btn, callback_data=f"task_{group_id}_{user_id}_{btn}") for btn in row])
         
-        player['tasks'] += 1
-        update_user_points(user_id, 15, task=True)
+        reply_markup = InlineKeyboardMarkup(keyboard)
         
-        await context.bot.send_message(
-            chat_id=group_id,
-            text=f"✅ {player['first_name']} أكمل مهمة: {task['emoji']} {task['name']} ({player['tasks']}/{player['total_tasks']})"
+        await update.message.reply_text(
+            f"{task['emoji']} {task['name']}\n\n{task['description']}",
+            reply_markup=reply_markup
         )
-        
-        if player['tasks'] >= player['total_tasks']:
-            await update.message.reply_text("🎉 لقد أكملت جميع مهامك! أحسنت!")
-            
-            all_crew_done = all(
-                game['players'][pid]['tasks'] >= game['players'][pid]['total_tasks']
-                for pid in game['alive_crewmates']
-            )
-            if all_crew_done:
-                await end_game(group_id, context, 'crewmate')
     
     else:
         task = random.choice(IMPOSTOR_TASKS)
-        message = random.choice(task['messages'])
         
-        await update.message.reply_text(f"{task['emoji']} {task['name']}\n\n{message}")
-        await asyncio.sleep(2)
-        await update.message.reply_text(task['failure'])
+        keyboard = []
+        for row in task['buttons']:
+            keyboard.append([InlineKeyboardButton(btn, callback_data=f"faketask_{group_id}_{user_id}") for btn in row])
         
-        await context.bot.send_message(
-            chat_id=group_id,
-            text=f"🔄 {player['first_name']} يحاول تنفيذ مهمة: {task['emoji']} {task['name']}"
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.message.reply_text(
+            f"{task['emoji']} {task['name']}\n\n{task['description']}",
+            reply_markup=reply_markup
         )
+
+async def handle_task_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """معالجة ضغطات أزرار المهام"""
+    query = update.callback_query
+    await query.answer()
+    
+    data = query.data
+    user = query.from_user
+    
+    if data.startswith('task_'):
+        parts = data.split('_')
+        group_id = int(parts[1])
+        user_id = int(parts[2])
+        answer = '_'.join(parts[3:])
+        
+        if user.id != user_id:
+            await query.answer("❌ هذه المهمة ليست لك!", show_alert=True)
+            return
+        
+        if group_id not in active_games:
+            await query.edit_message_text("❌ اللعبة انتهت!")
+            return
+        
+        game = active_games[group_id]
+        
+        # البحث عن المهمة الصحيحة
+        task = None
+        for t in CREWMATE_TASKS:
+            if t['correct'] == answer:
+                task = t
+                break
+        
+        if task:
+            await query.edit_message_text(f"{task['emoji']} {task['name']}\n\n{task['success']}")
+            game['players'][user_id]['tasks'] += 1
+            update_user_points(user_id, 15, task=True)
+            
+            await context.bot.send_message(
+                chat_id=group_id,
+                text=f"✅ {game['players'][user_id]['first_name']} أكمل مهمة: {task['emoji']} {task['name']} ({game['players'][user_id]['tasks']}/{game['players'][user_id]['total_tasks']})"
+            )
+            
+            if game['players'][user_id]['tasks'] >= game['players'][user_id]['total_tasks']:
+                await context.bot.send_message(chat_id=user_id, text="🎉 لقد أكملت جميع مهامك! أحسنت!")
+        else:
+            await query.edit_message_text("❌ إجابة خاطئة! حاول مرة أخرى بـ /tasks")
+    
+    elif data.startswith('faketask_'):
+        parts = data.split('_')
+        group_id = int(parts[1])
+        user_id = int(parts[2])
+        
+        if user.id != user_id:
+            await query.answer("❌ هذه المهمة ليست لك!", show_alert=True)
+            return
+        
+        # مهمة وهمية - تفشل دائماً
+        task = random.choice(IMPOSTOR_TASKS)
+        await query.edit_message_text(f"{task['emoji']} {task['name']}\n\n{task['failure']}")
 
 async def kill_player(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -656,20 +775,24 @@ async def kill_player(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("✅ تم القتل بنجاح!")
     await start_voting(group_id, context)
 
-async def start_voting(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
+async def start_voting(chat_id: int, context: ContextTypes.DEFAULT_TYPE, from_emergency: bool = False):
     game = active_games[chat_id]
     game['status'] = 'voting'
     game['votes'] = {}
     
     alive_players = {pid: p for pid, p in game['players'].items() if p['alive']}
     
-    vote_text = "🗳️ جولة تصويت!\n\nصوتوا لطرد المشتبه به:\n\n"
+    if from_emergency:
+        vote_text = "🚨 انتهى وقت النقاش! جولة تصويت!\n\nصوتوا لطرد المشتبه به:\n\n"
+    else:
+        vote_text = "🗳️ جولة تصويت!\n\nتم اكتشاف جثة! صوتوا لطرد المشتبه به:\n\n"
     
     keyboard = []
     for pid, pdata in alive_players.items():
-        vote_text += f"• {pdata['first_name']} (@{pdata['username']})\n"
+        name = get_player_name(pdata)
+        vote_text += f"• {name} (@{pdata['username']})\n"
         keyboard.append([InlineKeyboardButton(
-            f"🗳️ {pdata['first_name']}", 
+            f"🗳️ {name}", 
             callback_data=f"vote_{chat_id}_{pid}"
         )])
     
@@ -678,11 +801,11 @@ async def start_voting(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
     
     await context.bot.send_message(
         chat_id=chat_id,
-        text=vote_text + "\n⏰ لديكم 45 ثانية للتصويت!",
+        text=vote_text + "\n⏰ لديكم 60 ثانية للتصويت!",
         reply_markup=reply_markup
     )
     
-    await asyncio.sleep(45)
+    await asyncio.sleep(60)
     await end_voting(chat_id, context)
 
 async def vote_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -717,7 +840,7 @@ async def handle_vote_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     if vote_target == 'skip':
         await query.answer("⏭️ تم تخطي التصويت!")
     else:
-        target_name = game['players'][int(vote_target)]['first_name']
+        target_name = get_player_name(game['players'][int(vote_target)])
         await query.answer(f"🗳️ صوتت لطرد {target_name}")
 
 async def end_voting(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
@@ -750,7 +873,7 @@ async def end_voting(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
     
     player_id = int(most_voted)
     player_data = game['players'][player_id]
-    player_name = player_data['first_name']
+    player_name = get_player_name(player_data)
     
     game['players'][player_id]['alive'] = False
     
@@ -835,7 +958,8 @@ async def end_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE, winner: str
     for pid, pdata in game['players'].items():
         role_emoji = "🔪" if pdata['role'] == 'impostor' else "👨‍🚀"
         alive_status = "💀 ميت" if not pdata['alive'] else "✅ حي"
-        roles_text += f"{role_emoji} {pdata['first_name']} - {alive_status}\n"
+        name = get_player_name(pdata)
+        roles_text += f"{role_emoji} {name} - {alive_status}\n"
     
     await context.bot.send_message(chat_id=chat_id, text=roles_text)
     
@@ -846,9 +970,10 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     db_user = get_user(user.id)
     
     win_rate = (db_user['games_won'] / db_user['games_played'] * 100) if db_user['games_played'] > 0 else 0
+    name = db_user['first_name'] or db_user['username'] or 'لاعب'
     
     stats_text = (
-        f"📊 إحصائيات {db_user['first_name'] or 'لاعب'}\n\n"
+        f"📊 إحصائيات {name}\n\n"
         f"🏆 النقاط: {db_user['points']}\n"
         f"🎮 عدد الجولات: {db_user['games_played']}\n"
         f"✅ مرات الفوز: {db_user['games_won']}\n\n"
@@ -873,7 +998,8 @@ async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
     medals = ["🥇", "🥈", "🥉"]
     for i, player in enumerate(leaders[:10]):
         medal = medals[i] if i < 3 else f"{i+1}."
-        name = player['first_name'] or player['username'] or str(player['user_id'])
+        # استخدام الاسم الأول أو اليوزرنيم
+        name = player['first_name'] or player['username'] or f"لاعب {player['user_id']}"
         lb_text += f"{medal} {name}: {player['points']} نقطة | {player['games_won']} فوز\n"
     
     await update.message.reply_text(lb_text)
@@ -940,9 +1066,11 @@ async def handle_referral_code(update: Update, context: ContextTypes.DEFAULT_TYP
     cursor.close()
     conn.close()
     
+    referrer_name = referrer['first_name'] or referrer['username'] or 'صديقك'
+    
     await update.message.reply_text(
         f"🎉 تم تفعيل كود الإحالة!\n"
-        f"ربحت 25 نقطة، و{referrer['first_name'] or 'صديقك'} ربح 75 نقطة!"
+        f"ربحت 25 نقطة، و{referrer_name} ربح 75 نقطة!"
     )
 
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -951,11 +1079,13 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     data = query.data
     
-    if data.startswith('vote_'):
+    if data.startswith('task_') or data.startswith('faketask_'):
+        await handle_task_callback(update, context)
+    elif data.startswith('vote_'):
         await handle_vote_callback(update, context)
     elif data == "start_playing":
         await query.message.reply_text(
-            "🎮 أضفني لمجموعتك وابدأ اللعب!\n"
+            "🎮 أضفني لمجموعتك وارفعني مشرف وابدأ اللعب!\n"
             "اكتب /new_game في المجموعة لبدء جولة"
         )
     elif data == "view_stats":
@@ -970,7 +1100,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         leaders = get_leaderboard()
         text = "🏆 المتصدرين:\n"
         for i, p in enumerate(leaders[:5], 1):
-            name = p['first_name'] or p['username'] or str(p['user_id'])
+            name = p['first_name'] or p['username'] or f"لاعب {p['user_id']}"
             text += f"{i}. {name}: {p['points']} نقطة\n"
         await query.message.reply_text(text)
     elif data == "referral_code":
@@ -1002,6 +1132,8 @@ def main():
     app.add_handler(CommandHandler("join", join_game))
     app.add_handler(CommandHandler("leave", leave_game))
     app.add_handler(CommandHandler("tasks", execute_task))
+    app.add_handler(CommandHandler("status", game_status))
+    app.add_handler(CommandHandler("emergency", emergency_meeting))
     app.add_handler(CommandHandler("kill", kill_player))
     app.add_handler(CommandHandler("vote", vote_command))
     app.add_handler(CommandHandler("stats", stats))
