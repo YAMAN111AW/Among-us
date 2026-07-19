@@ -817,7 +817,7 @@ async def handle_vote_callback(update: Update, context: ContextTypes.DEFAULT_TYP
         if chat_id in vote_messages:
             try:
                 voted_count = len(game['voted_players'])
-                total_alive = len([p for p in game['players'].values() if p['alive'])
+                total_alive = len([p for p in game['players'].values() if p['alive']])
                 await context.bot.edit_message_caption(
                     chat_id=chat_id,
                     message_id=vote_messages[chat_id],
