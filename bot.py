@@ -159,18 +159,22 @@ def get_impostor_count(player_count: int) -> int:
     if player_count <= 5: return 1
     elif player_count <= 8: return 2
     else: return 3
-def get_player_name(pdata: dict) -> str: return pdata.get('first_name') or pdata.get('username') or 'لاعب'
+    
+# إصلاح مشكلة الماركدوان: إزالة الرموز اللي تكسر البوت
+def get_player_name(pdata: dict) -> str: 
+    name = pdata.get('first_name') or pdata.get('username') or 'لاعب'
+    return str(name).replace('_', ' ').replace('*', '').replace('`', '').replace('[', '').replace(']', '')
 
 # ====== معالجات الأوامر ======
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     get_user(user.id)
-    welcome_text = (f"🎮 مرحباً {user.first_name}!\n\nأنا بوت Among Us في تليجرام!\nالعب مع أصدقائك في المجموعات واكتشف القاتل!\n\n👥 طريقة اللعب:\n1. أضفني لمجموعتك وارفعني مشرف\n2. اكتب /new_game لبدء جولة\n3. استخدم /join للانضمام\n4. نفذ المهام بـ /tasks\n5. استخدم أدواتك بـ /tools\n\n🏆 الأوامر: /new_game /join /tasks /tools /status /emergency /stats /leaderboard /help")
+    welcome_text = (f"🎮 مرحباً {user.first_name}!\n\nأنا بوت Among Us في تليجرام!\nالعب مع أصدقائك في المجموعات واكتشف القاتل!\n\n👥 طريقة اللعب:\n1. أضفني لمجموعتك وارفعني مشرف\n2. اكتب /new_game لبدء جولة\n3. استخدم /join للانضمام\n4. نفذ المهام بـ /tasks\n5. استخدم أدواتك بـ /tools\n\n🏆 الأوامر: /new_game /cancel_game /join /tasks /tools /status /emergency /stats /leaderboard /help")
     keyboard = [[InlineKeyboardButton("🎮 ابدأ اللعب", callback_data="start_playing"), InlineKeyboardButton("📊 الإحصائيات", callback_data="view_stats")], [InlineKeyboardButton("🏆 المتصدرين", callback_data="view_leaderboard"), InlineKeyboardButton("🔗 كود الإحالة", callback_data="referral_code")]]
     await update.message.reply_text(welcome_text, reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🎮 دليل اللعب:\n\n/new_game - بدء لعبة\n/join - انضمام\n/tasks - مهام تفاعلية\n/tools - أدوات مساعدة\n/status - حالة اللعبة\n/emergency - اجتماع طارئ\n/kill @user - قتل (للقاتل في الخاص)\n/stats - إحصائيات\n/leaderboard - متصدرين")
+    await update.message.reply_text("🎮 دليل اللعب:\n\n/new_game - بدء لعبة\n/cancel_game - إلغاء اللعبة الحالية\n/join - انضمام\n/tasks - مهام تفاعلية\n/tools - أدوات مساعدة\n/status - حالة اللعبة\n/emergency - اجتماع طارئ\n/kill @user - قتل (للقاتل في الخاص)\n/stats - إحصائيات\n/leaderboard - متصدرين")
 
 async def new_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -193,10 +197,37 @@ async def new_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     keyboard = [[InlineKeyboardButton("🎮 انضم للعبة", callback_data=f"join_{game_id}")]]
     await update.message.reply_text(
-        f"🚀 لعبة جديدة!\n\nمعرف: {game_id}\nالمنشئ: {user.first_name}\n\n👥 /join للانضمام (الحد الأدنى: 4)\n⚠️ عند اكتمال 4 لاعبين، سيتم التصويت للبدء!",
+        f"🚀 لعبة جديدة!\n\nمعرف: {game_id}\nالمنشئ: {user.first_name}\n\n👥 /join للانضمام (الحد الأدنى: 4)\n🗑️ /cancel_game لإلغاء اللعبة\n⚠️ عند اكتمال 4 لاعبين، سيتم التصويت للبدء!",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
     register_group(chat_id, update.effective_chat.title or "مجموعة")
+
+# الأمر الجديد: إلغاء اللعبة
+async def cancel_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    user = update.effective_user
+    
+    if chat_id not in active_games:
+        await update.effective_message.reply_text("❌ لا توجد لعبة نشطة لإلغائها!")
+        return
+        
+    game = active_games[chat_id]
+    
+    # التحقق من أن المستخدم هو المنشئ أو مشرف
+    is_admin = False
+    try:
+        member = await context.bot.get_chat_member(chat_id, user.id)
+        if member.status in [ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]:
+            is_admin = True
+    except:
+        pass
+        
+    if user.id != game['creator'] and not is_admin:
+        await update.effective_message.reply_text("❌ فقط منشئ اللعبة أو مشرف المجموعة يمكنه إلغاؤها!")
+        return
+        
+    del active_games[chat_id]
+    await update.effective_message.reply_text("🗑️ تم إلغاء اللعبة بنجاح!")
 
 async def join_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -235,7 +266,6 @@ async def join_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
         asyncio.create_task(ask_start_vote(chat_id, context))
 
 async def ask_start_vote(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
-    """سؤال اللاعبين إذا كانوا يريدون البدء"""
     if chat_id not in active_games: return
     game = active_games[chat_id]
     game['start_votes'] = {}
@@ -259,7 +289,6 @@ async def ask_start_vote(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
     await process_start_vote(chat_id, context)
 
 async def handle_start_vote(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """معالجة التصويت للبدء"""
     query = update.callback_query
     await query.answer()
     
@@ -281,7 +310,6 @@ async def handle_start_vote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer(f"صوتك: {'نعم' if vote == 'yes' else 'لا'}")
 
 async def process_start_vote(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
-    """معالجة نتيجة التصويت للبدء"""
     if chat_id not in active_games: return
     game = active_games[chat_id]
     
@@ -298,7 +326,7 @@ async def process_start_vote(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=chat_id, text=f"👥 وصل عدد اللاعبين إلى {len(game['players'])}!\n🎮 جاري بدء اللعبة تلقائياً...")
         await start_game(chat_id, context)
     else:
-        await context.bot.send_message(chat_id=chat_id, text="⏳ في انتظار المزيد من اللاعبين...\n👥 اكتب /join للانضمام!")
+        await context.bot.send_message(chat_id=chat_id, text="⏳ في انتظار المزيد من اللاعبين...\n👥 اكتب /join للانضمام أو /cancel_game للإلغاء!")
 
 async def leave_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -319,7 +347,7 @@ async def leave_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def game_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     if chat_id not in active_games:
-        await update.message.reply_text("❌ لا توجد لعبة نشطة!")
+        await update.effective_message.reply_text("❌ لا توجد لعبة نشطة!")
         return
     game = active_games[chat_id]
     status_text = "📊 *حالة اللعبة:*\n\n"
@@ -330,7 +358,8 @@ async def game_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status_text += f"\n👥 الأحياء: {sum(1 for p in game['players'].values() if p['alive'])}/{len(game['players'])}"
     if game.get('smoke_active'): status_text += "\n💨 الدخان منتشر!"
     if game.get('doors_locked'): status_text += "\n🚪 الأبواب مقفلة!"
-    await update.message.reply_text(status_text, parse_mode='Markdown')
+    # تم تعديلها لاستخدام effective_message لضمان العمل دائماً
+    await update.effective_message.reply_text(status_text, parse_mode='Markdown')
 
 async def emergency_meeting(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -850,8 +879,19 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
-    for cmd, func in [("start", start), ("help", help_command), ("new_game", new_game), ("join", join_game), ("leave", leave_game), ("tasks", execute_task), ("status", game_status), ("emergency", emergency_meeting), ("tools", show_tools), ("kill", kill_player), ("stats", stats), ("leaderboard", leaderboard), ("referral", handle_referral_code)]:
+    
+    # إضافة الأمر الجديد هنا
+    commands = [
+        ("start", start), ("help", help_command), ("new_game", new_game), 
+        ("cancel_game", cancel_game), ("join", join_game), ("leave", leave_game), 
+        ("tasks", execute_task), ("status", game_status), ("emergency", emergency_meeting), 
+        ("tools", show_tools), ("kill", kill_player), ("stats", stats), 
+        ("leaderboard", leaderboard), ("referral", handle_referral_code)
+    ]
+    
+    for cmd, func in commands:
         app.add_handler(CommandHandler(cmd, func))
+        
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_error_handler(error_handler)
     logger.info("🤖🔥 بوت Among Us يعمل!")
