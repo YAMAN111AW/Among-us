@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 # ============= إعدادات البوت =============
 BOT_TOKEN = "8875334916:AAHq6C2F8ujgnlaLGUW3tR1tgdizFE7SdEw"
-DATABASE_URL = "postgresql://my_postgres_knie_user:NjPFxAbn7zLsSc7DH4oACNsxt75tdZuJ@dpg-d9fq4npkh4rs73cvjji0-a/my_postgres_knie"
+DATABASE_URL = "postgresql://postgres:YmIsJsiuuOAQpuwJlLgOXqDVHFaLYpeL@sakura.proxy.rlwy.net:43404/railway"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 conn = psycopg2.connect(DATABASE_URL)
