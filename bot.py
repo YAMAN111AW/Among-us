@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # ============= إعدادات البوت =============
-BOT_TOKEN = "8986085701:AAEDv0M8H1nwGbOG5MQ_3pgNBRhQZyfCVy8"
+BOT_TOKEN = "8875334916:AAHq6C2F8ujgnlaLGUW3tR1tgdizFE7SdEw"
 DATABASE_URL = "postgresql://postgres:YmIsJsiuuOAQpuwJlLgOXqDVHFaLYpeL@sakura.proxy.rlwy.net:43404/railway"
 
 bot = telebot.TeleBot(BOT_TOKEN)
