@@ -8,8 +8,8 @@ from datetime import datetime, timedelta
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # ============= إعدادات البوت =============
-BOT_TOKEN = "توكن_البوت_هنا"
-DATABASE_URL = "postgresql://user:pass@host:port/dbname"
+BOT_TOKEN = "8986085701:AAEDv0M8H1nwGbOG5MQ_3pgNBRhQZyfCVy8"
+DATABASE_URL = "postgresql://postgres:YmIsJsiuuOAQpuwJlLgOXqDVHFaLYpeL@sakura.proxy.rlwy.net:43404/railway"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 conn = psycopg2.connect(DATABASE_URL)
