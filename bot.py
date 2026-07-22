@@ -9,67 +9,116 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # ============= إعدادات البوت =============
 BOT_TOKEN = "8875334916:AAHq6C2F8ujgnlaLGUW3tR1tgdizFE7SdEw"
-DATABASE_URL = "postgresql://postgres:YmIsJsiuuOAQpuwJlLgOXqDVHFaLYpeL@sakura.proxy.rlwy.net:43404/railway"
+DATABASE_URL = "postgresql://postgres:KjoMokHsrqRSWXIJAQqptaxVaaxrTLnS@sakura.proxy.rlwy.net:19327/railway"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 conn = psycopg2.connect(DATABASE_URL)
 cursor = conn.cursor()
 
+# ============= دوال مساعدة لقاعدة البيانات =============
+def safe_execute(query, params=None):
+    """تنفيذ استعلام مع حماية من الأخطاء"""
+    try:
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
+        conn.commit()
+        return True
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ خطأ في قاعدة البيانات: {e}")
+        return False
+
+def safe_fetchone(query, params=None):
+    """جلب صف واحد مع حماية"""
+    try:
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
+        return cursor.fetchone()
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ خطأ في fetchone: {e}")
+        return None
+
+def safe_fetchall(query, params=None):
+    """جلب كل الصفوف مع حماية"""
+    try:
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
+        return cursor.fetchall()
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ خطأ في fetchall: {e}")
+        return []
+
 # ============= إنشاء الجداول =============
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS users (
-    user_id BIGINT PRIMARY KEY,
-    username VARCHAR(100),
-    total_games INT DEFAULT 0,
-    wins INT DEFAULT 0,
-    kills INT DEFAULT 0
-);
+def init_db():
+    try:
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            user_id BIGINT PRIMARY KEY,
+            username VARCHAR(100),
+            total_games INT DEFAULT 0,
+            wins INT DEFAULT 0,
+            kills INT DEFAULT 0
+        );
+        
+        CREATE TABLE IF NOT EXISTS games (
+            game_id SERIAL PRIMARY KEY,
+            code VARCHAR(6) UNIQUE NOT NULL,
+            host_id BIGINT NOT NULL,
+            status VARCHAR(20) DEFAULT 'waiting',
+            max_players INT DEFAULT 10,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            started_at TIMESTAMP
+        );
+        
+        CREATE TABLE IF NOT EXISTS players (
+            player_id SERIAL PRIMARY KEY,
+            game_id INT REFERENCES games(game_id) ON DELETE CASCADE,
+            user_id BIGINT NOT NULL,
+            username VARCHAR(100),
+            role VARCHAR(20) DEFAULT 'crewmate',
+            is_alive BOOLEAN DEFAULT TRUE,
+            joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        
+        CREATE TABLE IF NOT EXISTS tasks (
+            task_id SERIAL PRIMARY KEY,
+            name VARCHAR(100),
+            description TEXT,
+            difficulty INT DEFAULT 1
+        );
+        
+        CREATE TABLE IF NOT EXISTS player_tasks (
+            id SERIAL PRIMARY KEY,
+            player_id INT REFERENCES players(player_id) ON DELETE CASCADE,
+            task_id INT REFERENCES tasks(task_id),
+            is_completed BOOLEAN DEFAULT FALSE
+        );
+        
+        CREATE TABLE IF NOT EXISTS kills (
+            kill_id SERIAL PRIMARY KEY,
+            game_id INT REFERENCES games(game_id) ON DELETE CASCADE,
+            killer_id BIGINT NOT NULL,
+            victim_id BIGINT NOT NULL,
+            killed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """)
+        conn.commit()
+        print("✅ تم إنشاء الجداول بنجاح")
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ خطأ في إنشاء الجداول: {e}")
 
-CREATE TABLE IF NOT EXISTS games (
-    game_id SERIAL PRIMARY KEY,
-    code VARCHAR(6) UNIQUE NOT NULL,
-    host_id BIGINT NOT NULL,
-    status VARCHAR(20) DEFAULT 'waiting',
-    max_players INT DEFAULT 10,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    started_at TIMESTAMP
-);
+init_db()
 
-CREATE TABLE IF NOT EXISTS players (
-    player_id SERIAL PRIMARY KEY,
-    game_id INT REFERENCES games(game_id) ON DELETE CASCADE,
-    user_id BIGINT NOT NULL,
-    username VARCHAR(100),
-    role VARCHAR(20) DEFAULT 'crewmate',
-    is_alive BOOLEAN DEFAULT TRUE,
-    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS tasks (
-    task_id SERIAL PRIMARY KEY,
-    name VARCHAR(100),
-    description TEXT,
-    difficulty INT DEFAULT 1
-);
-
-CREATE TABLE IF NOT EXISTS player_tasks (
-    id SERIAL PRIMARY KEY,
-    player_id INT REFERENCES players(player_id) ON DELETE CASCADE,
-    task_id INT REFERENCES tasks(task_id),
-    is_completed BOOLEAN DEFAULT FALSE
-);
-
-CREATE TABLE IF NOT EXISTS kills (
-    kill_id SERIAL PRIMARY KEY,
-    game_id INT REFERENCES games(game_id) ON DELETE CASCADE,
-    killer_id BIGINT NOT NULL,
-    victim_id BIGINT NOT NULL,
-    killed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-""")
-conn.commit()
-
-# ============= المهام الـ 20 المتنوعة =============
+# ============= المهام الـ 20 =============
 TASKS_LIST = [
     {"name": "🔧 إصلاح الأسلاك", "desc": "صلح 3 أسلاك كهربائية", "diff": 1},
     {"name": "🧹 تنظيف الفلتر", "desc": "نظف فلتر الأوكسجين", "diff": 1},
@@ -98,75 +147,75 @@ def generate_code():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
 def get_or_create_user(user_id, username):
-    cursor.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
-    if not cursor.fetchone():
-        cursor.execute(
-            "INSERT INTO users (user_id, username) VALUES (%s, %s)",
-            (user_id, username)
-        )
-        conn.commit()
+    try:
+        cursor.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
+        if not cursor.fetchone():
+            cursor.execute(
+                "INSERT INTO users (user_id, username) VALUES (%s, %s)",
+                (user_id, username)
+            )
+            conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ خطأ في get_or_create_user: {e}")
 
 def get_game_by_code(code):
-    cursor.execute("SELECT * FROM games WHERE code = %s", (code,))
-    return cursor.fetchone()
+    return safe_fetchone("SELECT * FROM games WHERE code = %s", (code,))
 
 def get_players_count(game_id):
-    cursor.execute("SELECT COUNT(*) FROM players WHERE game_id = %s", (game_id,))
-    return cursor.fetchone()[0]
-
-def get_alive_players(game_id):
-    cursor.execute("SELECT user_id FROM players WHERE game_id = %s AND is_alive = TRUE", (game_id,))
-    return [row[0] for row in cursor.fetchall()]
-
-def get_killer(game_id):
-    cursor.execute("SELECT user_id FROM players WHERE game_id = %s AND role = 'killer' AND is_alive = TRUE", (game_id,))
-    row = cursor.fetchone()
-    return row[0] if row else None
+    result = safe_fetchone("SELECT COUNT(*) FROM players WHERE game_id = %s", (game_id,))
+    return result[0] if result else 0
 
 def assign_tasks(player_id):
-    # اختيار 3 مهام عشوائية للاعب
-    cursor.execute("SELECT task_id FROM tasks")
-    all_tasks = cursor.fetchall()
-    if not all_tasks:
-        return
-    
-    selected_tasks = random.sample(all_tasks, min(3, len(all_tasks)))
-    for task in selected_tasks:
-        cursor.execute(
-            "INSERT INTO player_tasks (player_id, task_id) VALUES (%s, %s)",
-            (player_id, task[0])
-        )
-    conn.commit()
+    try:
+        cursor.execute("SELECT task_id FROM tasks")
+        all_tasks = cursor.fetchall()
+        if not all_tasks:
+            return
+        selected_tasks = random.sample(all_tasks, min(3, len(all_tasks)))
+        for task in selected_tasks:
+            cursor.execute(
+                "INSERT INTO player_tasks (player_id, task_id) VALUES (%s, %s)",
+                (player_id, task[0])
+            )
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ خطأ في assign_tasks: {e}")
 
 def get_player_tasks(player_id):
-    cursor.execute("""
+    return safe_fetchall("""
         SELECT t.name, t.description, pt.is_completed 
         FROM player_tasks pt
         JOIN tasks t ON pt.task_id = t.task_id
         WHERE pt.player_id = %s
         ORDER BY pt.id
     """, (player_id,))
-    return cursor.fetchall()
 
 def complete_task(player_id, task_index):
-    cursor.execute("""
-        SELECT id, is_completed FROM player_tasks 
-        WHERE player_id = %s ORDER BY id LIMIT 1 OFFSET %s
-    """, (player_id, task_index))
-    task = cursor.fetchone()
-    if task and not task[1]:
-        cursor.execute("UPDATE player_tasks SET is_completed = TRUE WHERE id = %s", (task[0],))
-        conn.commit()
-        return True
-    return False
+    try:
+        cursor.execute("""
+            SELECT id, is_completed FROM player_tasks 
+            WHERE player_id = %s ORDER BY id LIMIT 1 OFFSET %s
+        """, (player_id, task_index))
+        task = cursor.fetchone()
+        if task and not task[1]:
+            cursor.execute("UPDATE player_tasks SET is_completed = TRUE WHERE id = %s", (task[0],))
+            conn.commit()
+            return True
+        return False
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ خطأ في complete_task: {e}")
+        return False
 
 def check_all_tasks_completed(game_id):
-    cursor.execute("""
+    result = safe_fetchone("""
         SELECT COUNT(*) FROM player_tasks pt
         JOIN players p ON pt.player_id = p.player_id
         WHERE p.game_id = %s AND pt.is_completed = FALSE
     """, (game_id,))
-    return cursor.fetchone()[0] == 0
+    return result[0] == 0 if result else False
 
 def get_bot_username():
     try:
@@ -176,16 +225,13 @@ def get_bot_username():
 
 # ============= أوامر البوت =============
 
-# أمر بدء اللعبة
 @bot.message_handler(commands=['start'])
 def start(message):
     get_or_create_user(message.from_user.id, message.from_user.username)
     
-    # التحقق إذا كان هناك كود في الرسالة
     args = message.text.split()
     if len(args) > 1 and args[1].startswith('join_'):
         code = args[1].replace('join_', '').upper()
-        # محاولة الانضمام تلقائياً
         join_with_code(message, code)
         return
     
@@ -200,6 +246,7 @@ def start(message):
         "/dotask [رقم] - إنجاز مهمة\n"
         "/kill [@user] - قتل لاعب (للقاتل فقط)\n"
         "/vote [@user] - التصويت لإقصاء لاعب\n"
+        "/meeting - دعوة لعقد اجتماع طارئ 🚨\n"
         "/status - حالة اللعبة\n"
         "/help - عرض المساعدة",
         parse_mode='Markdown'
@@ -224,60 +271,80 @@ def join_with_code(message, code):
         bot.reply_to(message, "❌ اللعبة ممتلئة! (حد أقصى 10 لاعبين)")
         return
     
-    cursor.execute("SELECT * FROM players WHERE game_id = %s AND user_id = %s", (game_id, message.from_user.id))
-    if cursor.fetchone():
+    # التحقق من عدم انضمامه مسبقاً
+    existing = safe_fetchone("SELECT * FROM players WHERE game_id = %s AND user_id = %s", (game_id, message.from_user.id))
+    if existing:
         bot.reply_to(message, "❌ أنت بالفعل في هذه اللعبة!")
         return
     
-    cursor.execute(
-        "INSERT INTO players (game_id, user_id, username, role) VALUES (%s, %s, %s, 'crewmate')",
-        (game_id, message.from_user.id, message.from_user.username)
-    )
-    conn.commit()
+    try:
+        cursor.execute(
+            "INSERT INTO players (game_id, user_id, username, role) VALUES (%s, %s, %s, 'crewmate')",
+            (game_id, message.from_user.id, message.from_user.username)
+        )
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        bot.reply_to(message, f"❌ خطأ في الانضمام: {e}")
+        return
     
-    # إضافة مهام للاعب الجديد
-    cursor.execute("SELECT player_id FROM players WHERE game_id = %s AND user_id = %s", (game_id, message.from_user.id))
-    player_id = cursor.fetchone()[0]
-    assign_tasks(player_id)
+    # إضافة مهام
+    player_result = safe_fetchone("SELECT player_id FROM players WHERE game_id = %s AND user_id = %s", (game_id, message.from_user.id))
+    if player_result:
+        assign_tasks(player_result[0])
     
     new_count = get_players_count(game_id)
-    bot.reply_to(message, f"✅ انضممت للعبة `{code}`\n👥 عدد اللاعبين: {new_count}/10", parse_mode='Markdown')
+    
+    # زر لفتح الخاص
+    bot_username = get_bot_username()
+    markup = InlineKeyboardMarkup()
+    btn = InlineKeyboardButton("🎮 افتح البوت", url=f"https://t.me/{bot_username}?start=join_{code}")
+    markup.add(btn)
+    
+    bot.reply_to(
+        message, 
+        f"✅ انضممت للعبة `{code}`\n👥 عدد اللاعبين: {new_count}/10",
+        parse_mode='Markdown',
+        reply_markup=markup
+    )
 
-# أمر إنشاء لعبة
 @bot.message_handler(commands=['new'])
 def new_game(message):
     get_or_create_user(message.from_user.id, message.from_user.username)
     
-    # التحقق من عدم وجود لعبة نشطة للمستخدم
-    cursor.execute("""
+    # التحقق من عدم وجود لعبة نشطة
+    existing = safe_fetchone("""
         SELECT g.code FROM games g
         JOIN players p ON g.game_id = p.game_id
         WHERE p.user_id = %s AND g.status IN ('waiting', 'playing')
     """, (message.from_user.id,))
-    if cursor.fetchone():
+    if existing:
         bot.reply_to(message, "❌ لديك لعبة نشطة حالياً!")
         return
     
     code = generate_code()
-    cursor.execute(
-        "INSERT INTO games (code, host_id, status) VALUES (%s, %s, 'waiting') RETURNING game_id",
-        (code, message.from_user.id)
-    )
-    game_id = cursor.fetchone()[0]
-    
-    cursor.execute(
-        "INSERT INTO players (game_id, user_id, username, role) VALUES (%s, %s, %s, 'crewmate')",
-        (game_id, message.from_user.id, message.from_user.username)
-    )
-    conn.commit()
+    try:
+        cursor.execute(
+            "INSERT INTO games (code, host_id, status) VALUES (%s, %s, 'waiting') RETURNING game_id",
+            (code, message.from_user.id)
+        )
+        game_id = cursor.fetchone()[0]
+        
+        cursor.execute(
+            "INSERT INTO players (game_id, user_id, username, role) VALUES (%s, %s, %s, 'crewmate')",
+            (game_id, message.from_user.id, message.from_user.username)
+        )
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        bot.reply_to(message, f"❌ خطأ في إنشاء اللعبة: {e}")
+        return
     
     # إضافة المهام
-    cursor.execute("SELECT player_id FROM players WHERE game_id = %s AND user_id = %s", (game_id, message.from_user.id))
-    player_id = cursor.fetchone()[0]
-    assign_tasks(player_id)
-    conn.commit()
+    player_result = safe_fetchone("SELECT player_id FROM players WHERE game_id = %s AND user_id = %s", (game_id, message.from_user.id))
+    if player_result:
+        assign_tasks(player_result[0])
     
-    # زر لفتح البوت
     bot_username = get_bot_username()
     markup = InlineKeyboardMarkup()
     btn = InlineKeyboardButton("🎮 افتح البوت", url=f"https://t.me/{bot_username}?start=join_{code}")
@@ -289,14 +356,12 @@ def new_game(message):
         f"👥 عدد اللاعبين: 1/10\n\n"
         f"شارك الكود مع أصدقائك:\n"
         f"/join {code}\n\n"
-        f"📌 أو اضغط الزر لفتح البوت في الخاص:\n"
         f"عند اكتمال العدد استخدم:\n"
         f"/startgame لبدء اللعبة",
         parse_mode='Markdown',
         reply_markup=markup
     )
 
-# أمر الانضمام
 @bot.message_handler(commands=['join'])
 def join_game(message):
     args = message.text.split()
@@ -307,15 +372,13 @@ def join_game(message):
     code = args[1].upper()
     join_with_code(message, code)
 
-# أمر بدء اللعبة
 @bot.message_handler(commands=['startgame'])
 def start_game(message):
-    cursor.execute("""
+    game = safe_fetchone("""
         SELECT g.game_id, g.host_id, g.code FROM games g
         JOIN players p ON g.game_id = p.game_id
         WHERE p.user_id = %s AND g.status = 'waiting'
     """, (message.from_user.id,))
-    game = cursor.fetchone()
     
     if not game:
         bot.reply_to(message, "❌ ليس لديك لعبة في وضع الانتظار!")
@@ -332,24 +395,30 @@ def start_game(message):
         bot.reply_to(message, f"❌ عدد اللاعبين {players_count}، نحتاج 4 لاعبين على الأقل!")
         return
     
-    # اختيار القاتل عشوائياً
-    cursor.execute("SELECT player_id, user_id FROM players WHERE game_id = %s", (game_id,))
-    all_players = cursor.fetchall()
+    # اختيار القاتل
+    all_players = safe_fetchall("SELECT player_id, user_id FROM players WHERE game_id = %s", (game_id,))
+    if not all_players:
+        bot.reply_to(message, "❌ لا يوجد لاعبين!")
+        return
     
     killer_idx = random.randint(0, len(all_players) - 1)
     killer_player_id, killer_user_id = all_players[killer_idx]
     
-    cursor.execute("UPDATE players SET role = 'killer' WHERE player_id = %s", (killer_player_id,))
-    cursor.execute("UPDATE games SET status = 'playing', started_at = NOW() WHERE game_id = %s", (game_id,))
-    conn.commit()
+    try:
+        cursor.execute("UPDATE players SET role = 'killer' WHERE player_id = %s", (killer_player_id,))
+        cursor.execute("UPDATE games SET status = 'playing', started_at = NOW() WHERE game_id = %s", (game_id,))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        bot.reply_to(message, f"❌ خطأ في بدء اللعبة: {e}")
+        return
     
-    # إرسال الأدوار للجميع
+    # إرسال الأدوار
     for player_id, user_id in all_players:
         try:
             role = "قاتل" if user_id == killer_user_id else "عادي"
             emoji = "🔪" if user_id == killer_user_id else "👨‍🚀"
             
-            # إرسال رسالة خاصة لكل لاعب
             bot.send_message(
                 user_id,
                 f"{emoji} **دورك في لعبة Among Us**\n"
@@ -371,7 +440,6 @@ def start_game(message):
                 )
         except Exception as e:
             print(f"خطأ في إرسال الرسالة للمستخدم {user_id}: {e}")
-            pass
     
     bot.send_message(message.chat.id, 
         f"🎮 **بدأت اللعبة!**\n"
@@ -382,16 +450,14 @@ def start_game(message):
         parse_mode='Markdown'
     )
 
-# أمر عرض المهام
 @bot.message_handler(commands=['tasks'])
 def show_tasks(message):
-    cursor.execute("""
+    result = safe_fetchone("""
         SELECT p.player_id, g.game_id, g.status 
         FROM players p
         JOIN games g ON p.game_id = g.game_id
         WHERE p.user_id = %s AND g.status = 'playing'
     """, (message.from_user.id,))
-    result = cursor.fetchone()
     
     if not result:
         bot.reply_to(message, "❌ أنت لست في لعبة نشطة!")
@@ -412,7 +478,6 @@ def show_tasks(message):
     msg += "\nاستخدم /dotask [الرقم] لإنجاز مهمة"
     bot.reply_to(message, msg, parse_mode='Markdown')
 
-# أمر إنجاز مهمة
 @bot.message_handler(commands=['dotask'])
 def do_task(message):
     args = message.text.split()
@@ -426,13 +491,12 @@ def do_task(message):
         bot.reply_to(message, "❌ الرقم غير صحيح!")
         return
     
-    cursor.execute("""
+    result = safe_fetchone("""
         SELECT p.player_id, g.game_id 
         FROM players p
         JOIN games g ON p.game_id = g.game_id
         WHERE p.user_id = %s AND g.status = 'playing'
     """, (message.from_user.id,))
-    result = cursor.fetchone()
     
     if not result:
         bot.reply_to(message, "❌ أنت لست في لعبة نشطة!")
@@ -443,15 +507,12 @@ def do_task(message):
     if complete_task(player_id, task_num):
         bot.reply_to(message, "✅ **أنجزت المهمة!** +10 نقاط")
         
-        # التحقق من فوز الطاقم
         if check_all_tasks_completed(result[1]):
             bot.send_message(message.chat.id, "🎉 **فاز الطاقم!** أنجزوا جميع المهام!")
-            cursor.execute("UPDATE games SET status = 'ended' WHERE game_id = %s", (result[1],))
-            conn.commit()
+            safe_execute("UPDATE games SET status = 'ended' WHERE game_id = %s", (result[1],))
     else:
         bot.reply_to(message, "❌ المهمة غير موجودة أو منجزة مسبقاً!")
 
-# أمر القتل (للقاتل فقط)
 @bot.message_handler(commands=['kill'])
 def kill_player(message):
     args = message.text.split()
@@ -461,14 +522,12 @@ def kill_player(message):
     
     target = args[1].replace('@', '')
     
-    # التحقق من أن المرسل هو القاتل
-    cursor.execute("""
+    killer = safe_fetchone("""
         SELECT p.game_id, p.user_id 
         FROM players p
         JOIN games g ON p.game_id = g.game_id
         WHERE p.user_id = %s AND g.status = 'playing' AND p.role = 'killer' AND p.is_alive = TRUE
     """, (message.from_user.id,))
-    killer = cursor.fetchone()
     
     if not killer:
         bot.reply_to(message, "❌ إما أنت لست القاتل، أو لست في لعبة، أو ميت!")
@@ -476,12 +535,10 @@ def kill_player(message):
     
     game_id = killer[0]
     
-    # البحث عن الضحية
-    cursor.execute("""
+    victim = safe_fetchone("""
         SELECT user_id FROM players 
         WHERE game_id = %s AND username = %s AND is_alive = TRUE AND role != 'killer'
     """, (game_id, target))
-    victim = cursor.fetchone()
     
     if not victim:
         bot.reply_to(message, "❌ اللاعب غير موجود أو ميت أو هو القاتل!")
@@ -489,14 +546,18 @@ def kill_player(message):
     
     victim_id = victim[0]
     
-    # تنفيذ القتل
-    cursor.execute("UPDATE players SET is_alive = FALSE WHERE user_id = %s AND game_id = %s", (victim_id, game_id))
-    cursor.execute(
-        "INSERT INTO kills (game_id, killer_id, victim_id) VALUES (%s, %s, %s)",
-        (game_id, message.from_user.id, victim_id)
-    )
-    cursor.execute("UPDATE users SET kills = kills + 1 WHERE user_id = %s", (message.from_user.id,))
-    conn.commit()
+    try:
+        cursor.execute("UPDATE players SET is_alive = FALSE WHERE user_id = %s AND game_id = %s", (victim_id, game_id))
+        cursor.execute(
+            "INSERT INTO kills (game_id, killer_id, victim_id) VALUES (%s, %s, %s)",
+            (game_id, message.from_user.id, victim_id)
+        )
+        cursor.execute("UPDATE users SET kills = kills + 1 WHERE user_id = %s", (message.from_user.id,))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        bot.reply_to(message, f"❌ خطأ في القتل: {e}")
+        return
     
     bot.send_message(message.chat.id, 
         f"💀 **تم العثور على جثة!**\n"
@@ -505,13 +566,11 @@ def kill_player(message):
         f"استخدم /vote @username للتصويت"
     )
     
-    # إرسال للميت
     try:
         bot.send_message(victim_id, "💀 **لقد قُتلت!**\nأنت خارج اللعبة. تابع فقط.")
     except:
         pass
 
-# أمر التصويت
 @bot.message_handler(commands=['vote'])
 def vote(message):
     args = message.text.split()
@@ -520,14 +579,71 @@ def vote(message):
         return
     
     target = args[1].replace('@', '')
-    
-    # منطق التصويت (سيتم تطويره لاحقاً)
     bot.reply_to(message, f"🗳️ تم تسجيل صوتك ضد @{target}\n(سيتم تطبيق نظام التصويت في التحديث القادم)")
 
-# أمر حالة اللعبة
+# ============= 🆕 أمر الاجتماع =============
+@bot.message_handler(commands=['meeting'])
+def call_meeting(message):
+    # التحقق من وجود اللاعب في لعبة نشطة
+    result = safe_fetchone("""
+        SELECT p.user_id, g.game_id, g.status, p.is_alive, p.role
+        FROM players p
+        JOIN games g ON p.game_id = g.game_id
+        WHERE p.user_id = %s AND g.status = 'playing' AND p.is_alive = TRUE
+    """, (message.from_user.id,))
+    
+    if not result:
+        bot.reply_to(message, "❌ أنت لست في لعبة نشطة، أو ميت!")
+        return
+    
+    user_id, game_id, status, is_alive, role = result
+    
+    # منع القاتل من دعوة الاجتماع
+    if role == 'killer':
+        bot.reply_to(message, "🔪 **القاتل لا يستطيع دعوة اجتماع!**")
+        return
+    
+    # جلب جميع اللاعبين الأحياء
+    alive_players = safe_fetchall("""
+        SELECT user_id, username FROM players 
+        WHERE game_id = %s AND is_alive = TRUE AND user_id != %s
+    """, (game_id, message.from_user.id))
+    
+    if not alive_players:
+        bot.reply_to(message, "❌ لا يوجد لاعبين أحياء غيرك!")
+        return
+    
+    # رسالة الاجتماع
+    msg = f"🚨 **اجتماع طارئ!**\n"
+    msg += f"👤 دعا للاجتماع: @{message.from_user.username}\n\n"
+    msg += "📌 اكتب رأيك أو صوت ضد أحد المشتبه بهم:\n"
+    msg += "استخدم /vote @username للتصويت\n\n"
+    msg += "✅ **اللاعبين الأحياء:**\n"
+    
+    for uid, username in alive_players:
+        msg += f"- @{username}\n"
+    
+    # إرسال الاجتماع للجميع (المجموعة أو الخاص)
+    bot.send_message(message.chat.id, msg, parse_mode='Markdown')
+    
+    # إرسال تنبيه خاص لكل لاعب حي
+    for uid, username in alive_players:
+        try:
+            bot.send_message(
+                uid,
+                f"🚨 **اجتماع طارئ!**\n"
+                f"قام @{message.from_user.username} بدعوة الجميع للاجتماع.\n"
+                f"استخدم /vote @username للتصويت",
+                parse_mode='Markdown'
+            )
+        except:
+            pass
+    
+    bot.reply_to(message, "✅ تم عقد الاجتماع بنجاح!")
+
 @bot.message_handler(commands=['status'])
 def game_status(message):
-    cursor.execute("""
+    result = safe_fetchone("""
         SELECT g.code, g.status, 
                COUNT(p.player_id) as total,
                SUM(CASE WHEN p.is_alive = TRUE THEN 1 ELSE 0 END) as alive
@@ -538,12 +654,11 @@ def game_status(message):
         HAVING COUNT(CASE WHEN p.user_id = %s THEN 1 END) > 0
     """, (message.from_user.id,))
     
-    game = cursor.fetchone()
-    if not game:
+    if not result:
         bot.reply_to(message, "❌ ليس لديك لعبة نشطة!")
         return
     
-    code, status, total, alive = game
+    code, status, total, alive = result
     status_text = "⏳ في الانتظار" if status == 'waiting' else "🎮 جارية"
     
     bot.reply_to(message,
@@ -556,34 +671,28 @@ def game_status(message):
         parse_mode='Markdown'
     )
 
-# أمر إلغاء اللعبة
 @bot.message_handler(commands=['cancel'])
 def cancel_game(message):
-    cursor.execute("""
+    result = safe_fetchone("""
         SELECT g.game_id, g.host_id, g.status 
         FROM games g
         JOIN players p ON g.game_id = p.game_id
         WHERE p.user_id = %s AND g.status IN ('waiting', 'playing')
     """, (message.from_user.id,))
-    game = cursor.fetchone()
     
-    if not game:
+    if not result:
         bot.reply_to(message, "❌ ليس لديك لعبة نشطة لإلغائها!")
         return
     
-    game_id, host_id, status = game
+    game_id, host_id, status = result
     
     if message.from_user.id != host_id and status == 'playing':
         bot.reply_to(message, "❌ فقط المضيف يمكنه إلغاء اللعبة أثناء اللعب!")
         return
     
-    # حذف اللعبة وكل البيانات المرتبطة
-    cursor.execute("DELETE FROM games WHERE game_id = %s", (game_id,))
-    conn.commit()
-    
+    safe_execute("DELETE FROM games WHERE game_id = %s", (game_id,))
     bot.reply_to(message, "🗑️ **تم إلغاء اللعبة!**\nتم حذف جميع البيانات.")
 
-# أمر المساعدة
 @bot.message_handler(commands=['help'])
 def help_command(message):
     start(message)
@@ -591,16 +700,19 @@ def help_command(message):
 # ============= تشغيل البوت =============
 if __name__ == "__main__":
     print("🤖 البوت شغال...")
-    print(f"👥 عدد المهام المسجلة: {len(TASKS_LIST)}")
     
-    # إدخال المهام في قاعدة البيانات إذا لم تكن موجودة
+    # إدخال المهام في قاعدة البيانات
     for task in TASKS_LIST:
-        cursor.execute("SELECT * FROM tasks WHERE name = %s", (task['name'],))
-        if not cursor.fetchone():
-            cursor.execute(
+        existing = safe_fetchone("SELECT * FROM tasks WHERE name = %s", (task['name'],))
+        if not existing:
+            safe_execute(
                 "INSERT INTO tasks (name, description, difficulty) VALUES (%s, %s, %s)",
                 (task['name'], task['desc'], task['diff'])
             )
-    conn.commit()
     
-    bot.infinity_polling(timeout=10, long_polling_timeout=5)
+    while True:
+        try:
+            bot.infinity_polling(timeout=10, long_polling_timeout=5)
+        except Exception as e:
+            print(f"❌ خطأ في البوت: {e}")
+            time.sleep(5)
