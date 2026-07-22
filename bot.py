@@ -5,10 +5,11 @@ import string
 import time
 import threading
 from datetime import datetime, timedelta
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # ============= إعدادات البوت =============
-BOT_TOKEN = "8875334916:AAHq6C2F8ujgnlaLGUW3tR1tgdizFE7SdEw"
-DATABASE_URL = "postgresql://postgres:YmIsJsiuuOAQpuwJlLgOXqDVHFaLYpeL@sakura.proxy.rlwy.net:43404/railway"
+BOT_TOKEN = "توكن_البوت_هنا"
+DATABASE_URL = "postgresql://user:pass@host:port/dbname"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 conn = psycopg2.connect(DATABASE_URL)
@@ -38,6 +39,7 @@ CREATE TABLE IF NOT EXISTS players (
     player_id SERIAL PRIMARY KEY,
     game_id INT REFERENCES games(game_id) ON DELETE CASCADE,
     user_id BIGINT NOT NULL,
+    username VARCHAR(100),
     role VARCHAR(20) DEFAULT 'crewmate',
     is_alive BOOLEAN DEFAULT TRUE,
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -123,12 +125,18 @@ def get_killer(game_id):
 
 def assign_tasks(player_id):
     # اختيار 3 مهام عشوائية للاعب
-    selected_tasks = random.sample(TASKS_LIST, 3)
+    cursor.execute("SELECT task_id FROM tasks")
+    all_tasks = cursor.fetchall()
+    if not all_tasks:
+        return
+    
+    selected_tasks = random.sample(all_tasks, min(3, len(all_tasks)))
     for task in selected_tasks:
         cursor.execute(
             "INSERT INTO player_tasks (player_id, task_id) VALUES (%s, %s)",
-            (player_id, task['task_id'])
+            (player_id, task[0])
         )
+    conn.commit()
 
 def get_player_tasks(player_id):
     cursor.execute("""
@@ -136,6 +144,7 @@ def get_player_tasks(player_id):
         FROM player_tasks pt
         JOIN tasks t ON pt.task_id = t.task_id
         WHERE pt.player_id = %s
+        ORDER BY pt.id
     """, (player_id,))
     return cursor.fetchall()
 
@@ -159,12 +168,27 @@ def check_all_tasks_completed(game_id):
     """, (game_id,))
     return cursor.fetchone()[0] == 0
 
+def get_bot_username():
+    try:
+        return bot.get_me().username
+    except:
+        return "AmongUsBot"
+
 # ============= أوامر البوت =============
 
 # أمر بدء اللعبة
 @bot.message_handler(commands=['start'])
 def start(message):
     get_or_create_user(message.from_user.id, message.from_user.username)
+    
+    # التحقق إذا كان هناك كود في الرسالة
+    args = message.text.split()
+    if len(args) > 1 and args[1].startswith('join_'):
+        code = args[1].replace('join_', '').upper()
+        # محاولة الانضمام تلقائياً
+        join_with_code(message, code)
+        return
+    
     bot.reply_to(message, 
         "🎮 **مرحباً في بوت Among Us!**\n\n"
         "📌 الأوامر المتاحة:\n"
@@ -180,6 +204,44 @@ def start(message):
         "/help - عرض المساعدة",
         parse_mode='Markdown'
     )
+
+def join_with_code(message, code):
+    """دالة مساعدة للانضمام برمز"""
+    get_or_create_user(message.from_user.id, message.from_user.username)
+    
+    game = get_game_by_code(code)
+    if not game:
+        bot.reply_to(message, "❌ اللعبة غير موجودة!")
+        return
+    
+    game_id = game[0]
+    if game[3] != 'waiting':
+        bot.reply_to(message, "❌ اللعبة بدأت بالفعل!")
+        return
+    
+    players_count = get_players_count(game_id)
+    if players_count >= 10:
+        bot.reply_to(message, "❌ اللعبة ممتلئة! (حد أقصى 10 لاعبين)")
+        return
+    
+    cursor.execute("SELECT * FROM players WHERE game_id = %s AND user_id = %s", (game_id, message.from_user.id))
+    if cursor.fetchone():
+        bot.reply_to(message, "❌ أنت بالفعل في هذه اللعبة!")
+        return
+    
+    cursor.execute(
+        "INSERT INTO players (game_id, user_id, username, role) VALUES (%s, %s, %s, 'crewmate')",
+        (game_id, message.from_user.id, message.from_user.username)
+    )
+    conn.commit()
+    
+    # إضافة مهام للاعب الجديد
+    cursor.execute("SELECT player_id FROM players WHERE game_id = %s AND user_id = %s", (game_id, message.from_user.id))
+    player_id = cursor.fetchone()[0]
+    assign_tasks(player_id)
+    
+    new_count = get_players_count(game_id)
+    bot.reply_to(message, f"✅ انضممت للعبة `{code}`\n👥 عدد اللاعبين: {new_count}/10", parse_mode='Markdown')
 
 # أمر إنشاء لعبة
 @bot.message_handler(commands=['new'])
@@ -204,8 +266,8 @@ def new_game(message):
     game_id = cursor.fetchone()[0]
     
     cursor.execute(
-        "INSERT INTO players (game_id, user_id, role) VALUES (%s, %s, 'crewmate')",
-        (game_id, message.from_user.id)
+        "INSERT INTO players (game_id, user_id, username, role) VALUES (%s, %s, %s, 'crewmate')",
+        (game_id, message.from_user.id, message.from_user.username)
     )
     conn.commit()
     
@@ -215,64 +277,35 @@ def new_game(message):
     assign_tasks(player_id)
     conn.commit()
     
+    # زر لفتح البوت
+    bot_username = get_bot_username()
+    markup = InlineKeyboardMarkup()
+    btn = InlineKeyboardButton("🎮 افتح البوت", url=f"https://t.me/{bot_username}?start=join_{code}")
+    markup.add(btn)
+    
     bot.reply_to(message, 
         f"✅ **تم إنشاء اللعبة!**\n"
         f"🔑 الكود: `{code}`\n"
         f"👥 عدد اللاعبين: 1/10\n\n"
         f"شارك الكود مع أصدقائك:\n"
         f"/join {code}\n\n"
+        f"📌 أو اضغط الزر لفتح البوت في الخاص:\n"
         f"عند اكتمال العدد استخدم:\n"
         f"/startgame لبدء اللعبة",
-        parse_mode='Markdown'
+        parse_mode='Markdown',
+        reply_markup=markup
     )
 
 # أمر الانضمام
 @bot.message_handler(commands=['join'])
 def join_game(message):
-    get_or_create_user(message.from_user.id, message.from_user.username)
-    
     args = message.text.split()
     if len(args) < 2:
         bot.reply_to(message, "❌ استخدم: /join [كود اللعبة]")
         return
     
     code = args[1].upper()
-    game = get_game_by_code(code)
-    
-    if not game:
-        bot.reply_to(message, "❌ اللعبة غير موجودة!")
-        return
-    
-    game_id = game[0]
-    if game[3] != 'waiting':
-        bot.reply_to(message, "❌ اللعبة بدأت بالفعل!")
-        return
-    
-    players_count = get_players_count(game_id)
-    if players_count >= 10:
-        bot.reply_to(message, "❌ اللعبة ممتلئة! (حد أقصى 10 لاعبين)")
-        return
-    
-    # التحقق من عدم انضمامه مسبقاً
-    cursor.execute("SELECT * FROM players WHERE game_id = %s AND user_id = %s", (game_id, message.from_user.id))
-    if cursor.fetchone():
-        bot.reply_to(message, "❌ أنت بالفعل في هذه اللعبة!")
-        return
-    
-    cursor.execute(
-        "INSERT INTO players (game_id, user_id, role) VALUES (%s, %s, 'crewmate')",
-        (game_id, message.from_user.id)
-    )
-    conn.commit()
-    
-    # إضافة مهام للاعب الجديد
-    cursor.execute("SELECT player_id FROM players WHERE game_id = %s AND user_id = %s", (game_id, message.from_user.id))
-    player_id = cursor.fetchone()[0]
-    assign_tasks(player_id)
-    conn.commit()
-    
-    new_count = get_players_count(game_id)
-    bot.reply_to(message, f"✅ انضممت للعبة `{code}`\n👥 عدد اللاعبين: {new_count}/10", parse_mode='Markdown')
+    join_with_code(message, code)
 
 # أمر بدء اللعبة
 @bot.message_handler(commands=['startgame'])
@@ -336,7 +369,8 @@ def start_game(message):
                     "استخدم /kill @username لقتل لاعب\n"
                     "📌 تذكر: لا تفضح نفسك!"
                 )
-        except:
+        except Exception as e:
+            print(f"خطأ في إرسال الرسالة للمستخدم {user_id}: {e}")
             pass
     
     bot.send_message(message.chat.id, 
