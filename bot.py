@@ -9,7 +9,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # ============= إعدادات البوت =============
 BOT_TOKEN = "8875334916:AAHq6C2F8ujgnlaLGUW3tR1tgdizFE7SdEw"
-DATABASE_URL"postgresql://postgres:FTiUAIDFQjLnLIebBxkIFprvrHrqfeDs@sakura.proxy.rlwy.net:41714/railway"
+DATABASE_URL = "postgresql://postgres:FTiUAIDFQjLnLIebBxkIFprvrHrqfeDs@sakura.proxy.rlwy.net:41714/railway"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 conn = psycopg2.connect(DATABASE_URL)
