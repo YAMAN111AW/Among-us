@@ -13,7 +13,7 @@ from flask_cors import CORS
 
 # ============= إعدادات البوت =============
 BOT_TOKEN = "8875334916:AAHq6C2F8ujgnlaLGUW3tR1tgdizFE7SdEw"
-DATABASE_URL = "postgresql://postgres:hJjcIviEgMKamNASMYWtKOdmpdzoyPxE@postgres.railway.internal:5432/railway"
+DATABASE_URL = "postgresql://postgres:gGhvPiJBIxsFZdgZaMKmfuzSHwfjBRbV@postgres.railway.internal:5432/railway"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 conn = psycopg2.connect(DATABASE_URL)
